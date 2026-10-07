@@ -1,4 +1,5 @@
 import { Image, type ImageSource } from 'expo-image';
+import { useImperativeHandle, type Ref } from 'react';
 import { StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -8,6 +9,12 @@ const MIN_SCALE = 1;
 const MAX_SCALE = 4;
 const DOUBLE_TAP_SCALE = 2.5;
 const SWIPE_THRESHOLD = 80;
+const BUTTON_ZOOM_STEP = 1.5;
+
+export type ZoomableImageHandle = {
+  zoomIn: () => void;
+  zoomOut: () => void;
+};
 
 type Props = {
   source: ImageSource | number;
@@ -15,13 +22,15 @@ type Props = {
   onSwipeNext?: () => void;
   /** Swipe left while not zoomed. */
   onSwipePrevious?: () => void;
+  /** Exposes `zoomIn` / `zoomOut` for zoom buttons. */
+  ref?: Ref<ZoomableImageHandle>;
 };
 
 /**
- * Full-size image with pinch-to-zoom, pan while zoomed and double-tap zoom.
- * Remount it (via `key`) to reset the zoom when the source changes.
+ * Full-size image with pinch-to-zoom, pan while zoomed, double-tap zoom and
+ * button zoom (via `ref`). Remount it (via `key`) to reset the zoom when the source changes.
  */
-export function ZoomableImage({ source, onSwipeNext, onSwipePrevious }: Props) {
+export function ZoomableImage({ source, onSwipeNext, onSwipePrevious, ref }: Props) {
   const width = useSharedValue(0);
   const height = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -39,50 +48,66 @@ export function ZoomableImage({ source, onSwipeNext, onSwipePrevious }: Props) {
 
   const reset = () => {
     'worklet';
-    scale.value = withTiming(1);
-    savedScale.value = 1;
-    translateX.value = withTiming(0);
-    translateY.value = withTiming(0);
-    savedTranslateX.value = 0;
-    savedTranslateY.value = 0;
+    scale.set(withTiming(1));
+    savedScale.set(1);
+    translateX.set(withTiming(0));
+    translateY.set(withTiming(0));
+    savedTranslateX.set(0);
+    savedTranslateY.set(0);
   };
+
+  const zoomTo = (nextScale: number) => {
+    const clamped = Math.min(Math.max(nextScale, MIN_SCALE), MAX_SCALE);
+    scale.set(withTiming(clamped));
+    savedScale.set(clamped);
+    // Keep the visible area inside the image at the new scale.
+    savedTranslateX.set(clampTranslation(savedTranslateX.get(), width.get(), clamped));
+    savedTranslateY.set(clampTranslation(savedTranslateY.get(), height.get(), clamped));
+    translateX.set(withTiming(savedTranslateX.get()));
+    translateY.set(withTiming(savedTranslateY.get()));
+  };
+
+  useImperativeHandle(ref, () => ({
+    zoomIn: () => zoomTo(savedScale.get() * BUTTON_ZOOM_STEP),
+    zoomOut: () => zoomTo(savedScale.get() / BUTTON_ZOOM_STEP),
+  }));
 
   const pinch = Gesture.Pinch()
     .onUpdate((event) => {
-      const nextScale = Math.min(Math.max(savedScale.value * event.scale, MIN_SCALE), MAX_SCALE);
-      scale.value = nextScale;
-      translateX.value = clampTranslation(translateX.value, width.value, nextScale);
-      translateY.value = clampTranslation(translateY.value, height.value, nextScale);
+      const nextScale = Math.min(Math.max(savedScale.get() * event.scale, MIN_SCALE), MAX_SCALE);
+      scale.set(nextScale);
+      translateX.set(clampTranslation(translateX.get(), width.get(), nextScale));
+      translateY.set(clampTranslation(translateY.get(), height.get(), nextScale));
     })
     .onEnd(() => {
-      if (scale.value <= MIN_SCALE) {
+      if (scale.get() <= MIN_SCALE) {
         reset();
         return;
       }
-      savedScale.value = scale.value;
-      savedTranslateX.value = translateX.value;
-      savedTranslateY.value = translateY.value;
+      savedScale.set(scale.get());
+      savedTranslateX.set(translateX.get());
+      savedTranslateY.set(translateY.get());
     });
 
   const pan = Gesture.Pan()
     .averageTouches(true)
     .onUpdate((event) => {
-      if (savedScale.value <= MIN_SCALE) return;
-      translateX.value = clampTranslation(
-        savedTranslateX.value + event.translationX,
-        width.value,
-        scale.value
-      );
-      translateY.value = clampTranslation(
-        savedTranslateY.value + event.translationY,
-        height.value,
-        scale.value
-      );
+      if (savedScale.get() <= MIN_SCALE) return;
+      translateX.set(clampTranslation(
+        savedTranslateX.get() + event.translationX,
+        width.get(),
+        scale.get()
+      ));
+      translateY.set(clampTranslation(
+        savedTranslateY.get() + event.translationY,
+        height.get(),
+        scale.get()
+      ));
     })
     .onEnd((event) => {
-      if (savedScale.value > MIN_SCALE) {
-        savedTranslateX.value = translateX.value;
-        savedTranslateY.value = translateY.value;
+      if (savedScale.get() > MIN_SCALE) {
+        savedTranslateX.set(translateX.get());
+        savedTranslateY.set(translateY.get());
         return;
       }
       if (event.translationX > SWIPE_THRESHOLD && onSwipeNext) {
@@ -95,11 +120,11 @@ export function ZoomableImage({ source, onSwipeNext, onSwipePrevious }: Props) {
   const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
     .onEnd(() => {
-      if (savedScale.value > MIN_SCALE) {
+      if (savedScale.get() > MIN_SCALE) {
         reset();
       } else {
-        scale.value = withTiming(DOUBLE_TAP_SCALE);
-        savedScale.value = DOUBLE_TAP_SCALE;
+        scale.set(withTiming(DOUBLE_TAP_SCALE));
+        savedScale.set(DOUBLE_TAP_SCALE);
       }
     });
 
@@ -107,9 +132,9 @@ export function ZoomableImage({ source, onSwipeNext, onSwipePrevious }: Props) {
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { scale: scale.value },
+      { translateX: translateX.get() },
+      { translateY: translateY.get() },
+      { scale: scale.get() },
     ],
   }));
 
@@ -118,8 +143,8 @@ export function ZoomableImage({ source, onSwipeNext, onSwipePrevious }: Props) {
       <Animated.View
         style={[styles.container, animatedStyle]}
         onLayout={(event) => {
-          width.value = event.nativeEvent.layout.width;
-          height.value = event.nativeEvent.layout.height;
+          width.set(event.nativeEvent.layout.width);
+          height.set(event.nativeEvent.layout.height);
         }}>
         <Image source={source} style={styles.image} contentFit="contain" />
       </Animated.View>

@@ -1,8 +1,10 @@
+import { useRef } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ZoomableImage } from '@/components/zoomable-image';
+import { ZoomControls } from '@/components/zoom-controls';
+import { ZoomableImage, type ZoomableImageHandle } from '@/components/zoomable-image';
 import { Colors } from '@/constants/colors';
 import { toArabicDigits } from '@/utils/arabic';
 
@@ -15,6 +17,7 @@ type Props = {
 };
 
 export function PageViewerModal({ pages, pageIndex, onChangePage, onClose }: Props) {
+  const imageRef = useRef<ZoomableImageHandle>(null);
   const isOpen = pageIndex !== null;
   const index = pageIndex ?? 0;
   const hasPrevious = index > 0;
@@ -41,6 +44,7 @@ export function PageViewerModal({ pages, pageIndex, onChangePage, onClose }: Pro
             {isOpen && (
               <ZoomableImage
                 key={index}
+                ref={imageRef}
                 source={pages[index]}
                 onSwipeNext={goNext}
                 onSwipePrevious={goPrevious}
@@ -50,7 +54,11 @@ export function PageViewerModal({ pages, pageIndex, onChangePage, onClose }: Pro
 
           <View style={styles.footer}>
             <NavButton label="السابقة" disabled={!hasPrevious} onPress={goPrevious} />
-            <Text style={styles.hint}>قرّب بإصبعين أو انقر مرتين</Text>
+            <ZoomControls
+              variant="dark"
+              onZoomIn={() => imageRef.current?.zoomIn()}
+              onZoomOut={() => imageRef.current?.zoomOut()}
+            />
             <NavButton label="التالية" disabled={!hasNext} onPress={goNext} />
           </View>
         </SafeAreaView>
@@ -111,10 +119,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-  },
-  hint: {
-    color: Colors.textSecondary,
-    fontSize: 12,
   },
   navButton: {
     backgroundColor: Colors.primary,
