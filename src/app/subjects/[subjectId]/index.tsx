@@ -22,7 +22,7 @@ export default function SubjectScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: subject.title }} />
+      <Stack.Screen options={{ title: `${subject.title} – ${subject.section}` }} />
       <FlatList
         style={styles.list}
         contentContainerStyle={styles.content}

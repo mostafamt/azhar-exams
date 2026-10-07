@@ -143,7 +143,15 @@ Optional helper: a small script in `scripts/` that scans `assets/<subject>/` and
 
 Implementation notes:
 
-- Page lists are generated: `npm run generate:exams` scans each subject folder and writes `src/data/exams.generated.ts`. Subjects are declared in `src/data/subjects.ts`.
+- Every PDF from https://azhar.eg/exams/index.htm is in the app: 43 subjects (22 العلمي, 21 الأدبي), 563 pages, ~39 MB of WebP. Subjects were identified from each PDF's cover page, since the site groups them (e.g. «اللغة العربية» = الأدب والنصوص، النحو، الصرف، البلاغة، الإنشاء). The original `assets/fiqah/` JPGs were replaced by the same exam converted from the official PDF (`shary/sc/6.pdf`).
+- `french/fr.pdf` is labelled «أدبي» on its cover but the site lists it under both sections, so it appears in both.
+- The «الفيزياء» exam is the site's updated file `فيزياء - محدث.pdf`.
+- Layout: `assets/exams/<section>/<subject>/<examKey>_page-NN.webp`, sections `sc` (العلمي) and `adaby` (الأدبي).
+- Adding an exam from a PDF:
+  1. `python scripts/pdf-to-pages.py <pdf> assets/exams/<section>/<subject> <examKey>` (needs `pip install pymupdf pillow`; renders 1240 px wide WebP, ~0.6 MB per 12-page exam).
+  2. `npm run generate:exams` — scans `assets/exams/` and writes `src/data/exams.generated.ts`.
+  3. New section or subject folder? Add its Arabic title in `src/data/subjects.ts` (untitled folders are hidden, with a dev warning).
+- Downloaded source PDFs are in `pdfs/` with `pdfs/index.csv` (section, subject, file, URL).
 - The full-screen viewer is a `Modal` (`src/components/page-viewer-modal.tsx`) with prev/next buttons and swipe, instead of a horizontal list — this avoids known RTL bugs with horizontal `FlatList` paging.
 
 ## 12. Still open
