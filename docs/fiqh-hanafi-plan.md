@@ -143,7 +143,7 @@ Optional helper: a small script in `scripts/` that scans `assets/<subject>/` and
 
 Implementation notes:
 
-- Every PDF from https://azhar.eg/exams/index.htm is in the app: 43 subjects (22 العلمي, 21 الأدبي), 563 pages, ~39 MB of WebP. Subjects were identified from each PDF's cover page, since the site groups them (e.g. «اللغة العربية» = الأدب والنصوص، النحو، الصرف، البلاغة، الإنشاء). The original `assets/fiqah/` JPGs were replaced by the same exam converted from the official PDF (`shary/sc/6.pdf`).
+- Every PDF from https://azhar.eg/exams/index.htm is in the app: 43 subjects (24 العلمي, 19 الأدبي), 563 pages, ~39 MB of WebP. Subjects were identified from each PDF's cover page, since the site groups them (e.g. «اللغة العربية» = الأدب والنصوص، النحو، الصرف، البلاغة، الإنشاء). The original `assets/fiqah/` JPGs were replaced by the same exam converted from the official PDF (`shary/sc/6.pdf`).
 - `french/fr.pdf` is labelled «أدبي» on its cover but the site lists it under both sections, so it appears in both.
 - The «الفيزياء» exam is the site's updated file `فيزياء - محدث.pdf`.
 - Layout: `assets/exams/<section>/<subject>/<examKey>_page-NN.webp`, sections `sc` (العلمي) and `adaby` (الأدبي).
