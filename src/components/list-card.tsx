@@ -6,7 +6,8 @@ import { Colors } from '@/constants/colors';
 type Props = {
   title: string;
   subtitle?: string;
-  thumbnail?: number;
+  /** Image URL. */
+  thumbnail?: string;
   onPress: () => void;
 };
 

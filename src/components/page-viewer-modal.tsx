@@ -9,7 +9,8 @@ import { Colors } from '@/constants/colors';
 import { toArabicDigits } from '@/utils/arabic';
 
 type Props = {
-  pages: number[];
+  /** Page image URLs. */
+  pages: string[];
   /** Index of the open page, or `null` when the viewer is closed. */
   pageIndex: number | null;
   onChangePage: (index: number) => void;

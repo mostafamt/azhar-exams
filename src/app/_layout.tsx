@@ -27,7 +27,7 @@ export default function RootLayout() {
             headerBackButtonDisplayMode: 'minimal',
           }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="subjects/index" options={{ title: 'المواد' }} />
+          <Stack.Screen name="grades/index" options={{ title: 'الصفوف' }} />
         </Stack>
       </ThemeProvider>
     </GestureHandlerRootView>

@@ -17,7 +17,7 @@ export type ZoomableImageHandle = {
 };
 
 type Props = {
-  source: ImageSource | number;
+  source: ImageSource | string;
   /** Swipe right while not zoomed — the next page in Arabic reading order. */
   onSwipeNext?: () => void;
   /** Swipe left while not zoomed. */

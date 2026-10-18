@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { Colors } from '@/constants/colors';
 
@@ -9,6 +9,17 @@ export function EmptyState({ message }: { message: string }) {
     </View>
   );
 }
+
+export function LoadingState() {
+  return (
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color={Colors.primary} />
+    </View>
+  );
+}
+
+/** Shown when a Firestore read fails, usually because the device is offline. */
+export const LOAD_ERROR_MESSAGE = 'تعذّر تحميل البيانات، تحقق من اتصالك بالإنترنت.';
 
 const styles = StyleSheet.create({
   container: {

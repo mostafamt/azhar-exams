@@ -11,7 +11,7 @@ export default function HomeScreen() {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/subjects')}
+          onPress={() => router.push('/grades')}
           activeOpacity={0.8}>
           <Text style={styles.buttonText}>ابدأ المذاكرة الآن</Text>
         </TouchableOpacity>
