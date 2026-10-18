@@ -9,10 +9,11 @@ import { Colors } from '@/constants/colors';
 import { groupByCategory, useCategories, useGrade, useSections, useSubjects } from '@/data/content';
 
 export default function GradeScreen() {
-  const { gradeId } = useLocalSearchParams<{ gradeId: string }>();
+  // `section` preselects a section, e.g. the student's own from the home screen shortcut.
+  const { gradeId, section: initialSectionId } = useLocalSearchParams<{ gradeId: string; section?: string }>();
   const grade = useGrade(gradeId);
   const sections = useSections(gradeId);
-  const [selectedSectionId, setSelectedSectionId] = useState<string>();
+  const [selectedSectionId, setSelectedSectionId] = useState(initialSectionId);
   const section = sections.data.find((s) => s.id === selectedSectionId) ?? sections.data[0];
   const subjects = useSubjects(gradeId, section?.id);
   const categories = useCategories(gradeId, section?.id);

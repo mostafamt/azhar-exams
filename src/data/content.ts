@@ -135,8 +135,8 @@ export function useGrade(gradeId: string) {
   return useDocument<Grade>([gradeId]);
 }
 
-export function useSections(gradeId: string) {
-  return useCollection<Section>(collectionPath([gradeId]));
+export function useSections(gradeId: string | undefined) {
+  return useCollection<Section>(gradeId ? collectionPath([gradeId]) : null);
 }
 
 export function useSubjects(gradeId: string, sectionId: string | undefined) {

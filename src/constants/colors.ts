@@ -6,6 +6,12 @@ export const Colors = {
   textSecondary: '#64748b',
   primary: '#0284c7',
   primarySoft: '#e0f2fe',
+  error: '#dc2626',
+  errorSoft: '#fee2e2',
+  success: '#15803d',
+  successSoft: '#dcfce7',
+  warning: '#a16207',
+  warningSoft: '#fef9c3',
   overlay: '#000000',
   onOverlay: '#ffffff',
 };

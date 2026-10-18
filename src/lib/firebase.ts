@@ -13,6 +13,6 @@ const firebaseConfig = {
 };
 
 // Fast Refresh re-runs this module; reuse the app instead of initializing it twice.
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
