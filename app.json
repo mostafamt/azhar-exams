@@ -10,6 +10,8 @@
     "ios": {
       "icon": "./assets/expo.icon",
       "supportsTablet": true,
+      "bundleIdentifier": "com.azharexams.app",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ExpoLocalization_supportsRTL": true,
         "ExpoLocalization_forcesRTL": true
@@ -23,7 +25,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.azharexams.app"
+      "package": "com.azharexams.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -46,7 +49,8 @@
           "supportsRTL": true,
           "forcesRTL": true
         }
-      ]
+      ],
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true,

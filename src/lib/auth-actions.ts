@@ -10,6 +10,7 @@ import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
+import { signOutOfGoogle } from '@/lib/google-sign-in';
 
 /**
  * users/{uid} — one collection for students and dashboard admins. The app always writes
@@ -63,6 +64,8 @@ export async function resendVerification() {
   if (auth.currentUser) await sendEmailVerification(auth.currentUser);
 }
 
-export function signOut() {
-  return firebaseSignOut(auth);
+export async function signOut() {
+  // Best effort: a failure here shouldn't keep the user signed in to the app.
+  await signOutOfGoogle().catch(() => {});
+  await firebaseSignOut(auth);
 }

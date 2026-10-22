@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { signOut } from '@/lib/auth-actions';
 
 export default function HomeScreen() {
-  const { user, profile, initializing } = useAuth();
+  const { user, profile, initializing, leaveGuest } = useAuth();
 
   // Signed-in students go straight to their own grade and section; everyone else picks one.
   function start() {
@@ -47,10 +47,10 @@ export default function HomeScreen() {
               <Text style={styles.signOutText}>تسجيل الخروج</Text>
             </Pressable>
           ) : (
-            <>
-              <PrimaryButton title="تسجيل الدخول" onPress={() => router.push('/sign-in')} secondary />
-              <Text style={styles.hint}>الحساب اختياري — يمكنك تصفح الامتحانات بدونه.</Text>
-            </>
+            // Guests only: back to the welcome screen to sign in or create an account.
+            <Pressable onPress={leaveGuest} accessibilityRole="button" hitSlop={8} style={styles.signOut}>
+              <Text style={styles.link}>تسجيل الدخول أو إنشاء حساب</Text>
+            </Pressable>
           )}
         </View>
       </ScrollView>
@@ -113,10 +113,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.error,
-  },
-  hint: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    textAlign: 'center',
   },
 });

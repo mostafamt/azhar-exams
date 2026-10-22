@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { createContext, use, useCallback, useEffect, useState, type ReactNode } from 'react';
@@ -16,7 +17,20 @@ type AuthState = {
   emailVerified: boolean;
   /** Reloads the user from Firebase; the only way to notice a verification done in the browser. */
   refreshUser: () => Promise<void>;
+  /** True until the stored session and guest choice are known; doesn't wait for the profile (network). */
+  restoring: boolean;
+  /** Signed out but chose «التصفح كزائر» on the welcome screen. Remembered across launches. */
+  isGuest: boolean;
+  continueAsGuest: () => void;
+  /** Back to the welcome screen, e.g. a guest who wants to sign in. */
+  leaveGuest: () => void;
 };
+
+const GUEST_KEY = 'welcome.guest';
+
+function storeGuest(isGuest: boolean) {
+  (isGuest ? AsyncStorage.setItem(GUEST_KEY, '1') : AsyncStorage.removeItem(GUEST_KEY)).catch(() => {});
+}
 
 const AuthContext = createContext<AuthState | null>(null);
 
@@ -28,15 +42,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile: null,
   });
   const [emailVerified, setEmailVerified] = useState(false);
+  // undefined = not read from storage yet
+  const [guest, setGuest] = useState<boolean | undefined>(undefined);
 
   useEffect(
     () =>
       onAuthStateChanged(auth, (next) => {
         setUser(next);
         setEmailVerified(next?.emailVerified ?? false);
+        // A signed-in user is no longer a guest, so signing out later shows the welcome screen again.
+        if (next) {
+          setGuest(false);
+          storeGuest(false);
+        }
       }),
     []
   );
+
+  useEffect(() => {
+    // Don't overwrite a value the auth listener already set while this was loading.
+    AsyncStorage.getItem(GUEST_KEY)
+      .then((value) => setGuest((current) => current ?? value === '1'))
+      .catch(() => setGuest((current) => current ?? false));
+  }, []);
+
+  const continueAsGuest = useCallback(() => {
+    setGuest(true);
+    storeGuest(true);
+  }, []);
+
+  const leaveGuest = useCallback(() => {
+    setGuest(false);
+    storeGuest(false);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -71,6 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializing: user === undefined || !profileKnown,
     emailVerified,
     refreshUser,
+    restoring: user === undefined || guest === undefined,
+    isGuest: !user && !!guest,
+    continueAsGuest,
+    leaveGuest,
   };
 
   return <AuthContext value={value}>{children}</AuthContext>;

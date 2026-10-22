@@ -1,10 +1,12 @@
+import { useFonts } from 'expo-font';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import { Colors } from '@/constants/colors';
+import { Brand, Colors } from '@/constants/colors';
+import { CairoFonts } from '@/constants/fonts';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 
 SplashScreen.preventAutoHideAsync();
@@ -20,18 +22,36 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.root}>
       <ThemeProvider value={theme}>
         <AuthProvider>
-          <AnimatedSplashOverlay />
-          <RootStack />
+          <AppContent />
         </AuthProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
 }
 
-// Exams are public; only the account screens depend on auth state. When a guard turns false
-// (e.g. right after signing in) Expo Router leaves those screens and returns to `index`.
+// The native splash stays up until the stored session, the guest choice and the fonts are known;
+// otherwise the first screen could flash welcome before switching to home. AnimatedSplashOverlay
+// hides the native splash once it mounts.
+function AppContent() {
+  const { restoring } = useAuth();
+  const [fontsLoaded, fontError] = useFonts(CairoFonts);
+
+  if (restoring || (!fontsLoaded && !fontError)) return null;
+
+  return (
+    <>
+      <AnimatedSplashOverlay />
+      <RootStack />
+    </>
+  );
+}
+
+// Exams are public; only the welcome and account screens depend on auth state. When a guard
+// turns false (e.g. right after signing in) Expo Router leaves those screens and returns to the
+// first allowed one: welcome for signed-out users, otherwise `index`.
 function RootStack() {
-  const { user, profile, initializing } = useAuth();
+  const { user, profile, initializing, isGuest } = useAuth();
+  const showWelcome = !user && !isGuest;
 
   return (
     <Stack
@@ -41,7 +61,16 @@ function RootStack() {
         headerTitleStyle: { color: Colors.text, fontWeight: '700' },
         headerBackButtonDisplayMode: 'minimal',
       }}>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Protected guard={showWelcome}>
+        <Stack.Screen
+          name="welcome"
+          options={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: Brand.background } }}
+        />
+      </Stack.Protected>
+      <Stack.Protected guard={!showWelcome}>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+      </Stack.Protected>
+      {/* Not guarded, so links to grades and exams work for everyone. */}
       <Stack.Screen name="grades/index" options={{ title: 'الصفوف' }} />
       <Stack.Protected guard={!user}>
         <Stack.Screen name="(auth)/sign-in" options={{ title: 'تسجيل الدخول' }} />

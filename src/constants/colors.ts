@@ -15,3 +15,20 @@ export const Colors = {
   overlay: '#000000',
   onOverlay: '#ffffff',
 };
+
+/** Dark palette from the new designs (docs/1 · Welcome & Auth-html). Only the welcome screen uses it so far. */
+export const Brand = {
+  background: '#0F172A',
+  surface: '#1E293B',
+  border: '#334155',
+  text: '#F8FAFC',
+  textMuted: '#94A3B8',
+  primary: '#4F46E5',
+  primaryBright: '#6366F1',
+  link: '#A5B4FC',
+  accent: '#F59E0B',
+  success: '#34D399',
+  error: '#F87171',
+  google: '#4285F4',
+  white: '#FFFFFF',
+};
