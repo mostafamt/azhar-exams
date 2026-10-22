@@ -16,12 +16,18 @@ const theme = {
   colors: { ...DefaultTheme.colors, background: Colors.background, primary: Colors.primary },
 };
 
+// Repeated per screen: native-stack screens are hosted in their own native containers, so the
+// root's direction may not reach them.
+const rtl = { direction: 'rtl' } as const;
+
 // Screens built from the new dark designs draw their own header (or none).
-const darkScreenOptions = { headerShown: false, contentStyle: { backgroundColor: Brand.background } };
+const darkScreenOptions = { headerShown: false, contentStyle: { ...rtl, backgroundColor: Brand.background } };
 
 export default function RootLayout() {
   return (
-    // RTL is forced natively by the expo-localization plugin (app.json); +html.tsx covers web.
+    // RTL: the expo-localization plugin (app.json) forces it in native builds, but Expo Go ignores
+    // config plugins, so the root also sets `direction: 'rtl'`, which every screen inherits.
+    // +html.tsx covers web.
     <GestureHandlerRootView style={styles.root}>
       <ThemeProvider value={theme}>
         <AuthProvider>
@@ -63,6 +69,7 @@ function RootStack() {
         headerTintColor: Colors.primary,
         headerTitleStyle: { color: Colors.text, fontWeight: '700' },
         headerBackButtonDisplayMode: 'minimal',
+        contentStyle: rtl,
       }}>
       <Stack.Protected guard={showWelcome}>
         <Stack.Screen name="welcome" options={{ ...darkScreenOptions, animation: 'fade' }} />
@@ -74,7 +81,7 @@ function RootStack() {
       <Stack.Screen name="grades/index" options={{ title: 'الصفوف' }} />
       <Stack.Protected guard={!user}>
         <Stack.Screen name="(auth)/sign-in" options={darkScreenOptions} />
-        <Stack.Screen name="(auth)/sign-up" options={{ title: 'إنشاء حساب' }} />
+        <Stack.Screen name="(auth)/sign-up" options={darkScreenOptions} />
         <Stack.Screen name="(auth)/forgot-password" options={{ title: 'استعادة كلمة المرور' }} />
       </Stack.Protected>
       <Stack.Protected guard={!!user && !initializing && !profile}>
@@ -87,5 +94,6 @@ function RootStack() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    direction: 'rtl',
   },
 });

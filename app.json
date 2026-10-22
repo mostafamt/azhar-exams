@@ -11,7 +11,6 @@
       "icon": "./assets/expo.icon",
       "supportsTablet": true,
       "bundleIdentifier": "com.azharexams.app",
-      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ExpoLocalization_supportsRTL": true,
         "ExpoLocalization_forcesRTL": true
@@ -25,8 +24,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.azharexams.app",
-      "googleServicesFile": "./google-services.json"
+      "package": "com.azharexams.app"
     },
     "web": {
       "output": "static",

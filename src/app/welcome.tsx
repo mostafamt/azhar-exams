@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthButton } from '@/components/auth-button';
+import { AuthErrorText, OrDivider } from '@/components/auth-screen';
 import { BrandLogo } from '@/components/brand-logo';
 import { FeatureCarousel } from '@/components/feature-carousel';
 import { GoogleBadge, MailIcon } from '@/components/icons';
@@ -48,22 +49,14 @@ export default function WelcomeScreen() {
           loading={google.loading}
           icon={<GoogleBadge />}
         />
-        <View style={styles.divider} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>أو</Text>
-          <View style={styles.dividerLine} />
-        </View>
+        <OrDivider />
         <AuthButton
           title="إنشاء حساب بالبريد الإلكتروني"
           variant="outline"
           onPress={() => router.push('/sign-up')}
           icon={<MailIcon color={Brand.link} size={20} />}
         />
-        {google.error ? (
-          <Text style={styles.error} accessibilityRole="alert">
-            {google.error}
-          </Text>
-        ) : null}
+        <AuthErrorText message={google.error} />
         <View style={styles.signInRow}>
           <Text style={styles.muted}>لديك حساب بالفعل؟</Text>
           <Pressable onPress={() => router.push('/sign-in')} accessibilityRole="link" hitSlop={8}>
@@ -114,28 +107,6 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: 10,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Brand.border,
-  },
-  dividerText: {
-    fontSize: 13,
-    fontFamily: Fonts.regular,
-    color: Brand.textMuted,
-  },
-  error: {
-    fontSize: 14,
-    lineHeight: 22,
-    fontFamily: Fonts.regular,
-    color: Brand.error,
-    textAlign: 'center',
   },
   signInRow: {
     minHeight: 44,

@@ -159,7 +159,7 @@ The app forces RTL (`expo-localization` plugin + `+html.tsx`), so `flexDirection
 - The library is imported lazily, so **Expo Go still runs**. The button is always visible; when the `RNGoogleSignin` native module is missing (Expo Go), tapping it shows «تسجيل الدخول باستخدام Google غير متاح في هذه النسخة…». (`Constants.executionEnvironment` can't tell Expo Go from a dev build: both report `storeClient`.)
 - `signOut()` also calls `GoogleSignin.signOut()`, so the next sign-in shows the account picker again.
 - Cancelling the picker shows no error. A missing or outdated Play Services shows an Arabic message.
-- `app.json`: plugin added with no options (the Firebase setup reads the files below), `ios.bundleIdentifier = com.azharexams.app` (same as the Android package), `ios.googleServicesFile` and `android.googleServicesFile`.
+- `app.json`: plugin added with no options (the Firebase setup reads the files below) and `ios.bundleIdentifier = com.azharexams.app` (same as the Android package). `ios.googleServicesFile` / `android.googleServicesFile` were **taken out for now**, so a development build works before the files exist. Native Google sign-in fails until step 3 adds them back. `expo-dev-client` is installed for the `development` EAS profile.
 
 **Still to do (needs your accounts):**
 
@@ -167,7 +167,7 @@ The app forces RTL (`expo-localization` plugin + `+html.tsx`), so `flexDirection
 |---|---|---|
 | 1 | Firebase console → Authentication → Sign-in method | Enable **Google**. Copy the **Web client ID** it shows under "Web SDK configuration". |
 | 2 | `.env` | Add `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=<web client id>`. Without it Google returns no idToken. |
-| 3 | Firebase console → Project settings | Add an **iOS app** (`com.azharexams.app`) and an **Android app** (`com.azharexams.app`). Download `GoogleService-Info.plist` and `google-services.json` to the repo root. They hold no secrets, so committing them is fine (Expo guide). Prebuild fails until they exist. |
+| 3 | Firebase console → Project settings | Add an **iOS app** (`com.azharexams.app`) and an **Android app** (`com.azharexams.app`). Download `GoogleService-Info.plist` and `google-services.json` to the repo root. They hold no secrets, so committing them is fine (Expo guide). Then add back `"googleServicesFile": "./GoogleService-Info.plist"` under `ios` and `"googleServicesFile": "./google-services.json"` under `android` in `app.json`, and rebuild. |
 | 4 | EAS | `npx eas-cli@latest credentials -p android`: copy the keystore **SHA-1** into the Firebase Android app. After the first Play upload, also add the Play **app-signing** SHA-1. Re-download `google-services.json` after adding fingerprints. |
 | 5 | Build | `npx eas-cli@latest build --profile development --platform android` (and `ios`). Install it and run `npx expo start` (it opens in the dev build instead of Expo Go). |
 | 6 | Firebase → Authentication → Settings | Authorized domains: make sure `localhost` (web dev) and the hosted web domain are listed. |

@@ -26,6 +26,8 @@ export const Brand = {
   placeholder: '#64748B',
   primary: '#4F46E5',
   primaryBright: '#6366F1',
+  /** Selected chips / segments. */
+  primarySoft: 'rgba(99,102,241,0.18)',
   link: '#A5B4FC',
   accent: '#F59E0B',
   success: '#34D399',

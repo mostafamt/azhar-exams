@@ -12,23 +12,43 @@ type Props = TextInputProps & {
   error?: string | null;
   /** Hides the text, with a show/hide toggle. */
   password?: boolean;
+  /** Set false to hide the show/hide toggle of a password field, e.g. «تأكيد كلمة المرور». */
+  showToggle?: boolean;
+  /** Help line under the field; screen readers also read it as the input's hint. */
+  hint?: string;
+  /** 52 high with a tighter label gap (sign-up design) instead of 54. */
+  compact?: boolean;
   ref?: Ref<TextInput>;
 };
 
 /** Labeled input of the dark auth designs, with a focus ring and an inline error. */
-export function AuthTextField({ label, icon: Icon, error, password, style, onFocus, onBlur, ref, ...props }: Props) {
+export function AuthTextField({
+  label,
+  icon: Icon,
+  error,
+  password,
+  showToggle = true,
+  hint,
+  compact,
+  style,
+  onFocus,
+  onBlur,
+  ref,
+  ...props
+}: Props) {
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(true);
   // Emails and passwords: typed left-to-right, no auto-capitalize / autocorrect.
   const latin = password || props.keyboardType === 'email-address';
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, compact && styles.containerCompact]}>
       <Text style={styles.label}>{label}</Text>
       <View
         style={[
           styles.inputRow,
-          password && styles.inputRowWithToggle,
+          compact && styles.inputRowCompact,
+          password && showToggle && styles.inputRowWithToggle,
           focused && styles.inputRowFocused,
           error ? styles.inputRowError : null,
         ]}>
@@ -36,6 +56,7 @@ export function AuthTextField({ label, icon: Icon, error, password, style, onFoc
         <TextInput
           ref={ref}
           accessibilityLabel={label}
+          accessibilityHint={hint}
           placeholderTextColor={Brand.placeholder}
           secureTextEntry={password && hidden}
           autoCorrect={latin ? false : props.autoCorrect}
@@ -48,10 +69,10 @@ export function AuthTextField({ label, icon: Icon, error, password, style, onFoc
             setFocused(false);
             onBlur?.(event);
           }}
-          style={[styles.input, noBrowserOutline, latin && styles.inputLatin, style]}
+          style={[styles.input, webInput, latin && webLatinInput, style]}
           {...props}
         />
-        {password && (
+        {password && showToggle && (
           <Pressable
             onPress={() => setHidden((h) => !h)}
             style={styles.toggle}
@@ -61,18 +82,28 @@ export function AuthTextField({ label, icon: Icon, error, password, style, onFoc
           </Pressable>
         )}
       </View>
+      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );
 }
 
-// Web: the row's ring shows focus, not the browser outline. RN's types don't list 'none', but
-// react-native-web passes it through to CSS.
-const noBrowserOutline = Platform.OS === 'web' ? ({ outlineStyle: 'none' } as unknown as TextStyle) : null;
+// Web only. iOS/Android already align input text to the RTL layout direction (set on the root
+// layout), and they mirror textAlign 'left'/'right' in RTL, so 'right' there would mean left.
+// - Right-aligned: in the browser an empty input follows its placeholder's direction.
+// - No outline: the row's ring shows focus. RN's types don't list 'none', but react-native-web
+//   passes it through to CSS.
+const webInput =
+  Platform.OS === 'web' ? ({ textAlign: 'right', outlineStyle: 'none' } as unknown as TextStyle) : null;
+// Emails and passwords are typed left-to-right but stay right-aligned like the labels.
+const webLatinInput: TextStyle | null = Platform.OS === 'web' ? { writingDirection: 'ltr' } : null;
 
 const styles = StyleSheet.create({
   container: {
     gap: 8,
+  },
+  containerCompact: {
+    gap: 6,
   },
   label: {
     fontSize: 14,
@@ -89,6 +120,9 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
     borderWidth: 1.5,
     borderColor: Brand.border,
+  },
+  inputRowCompact: {
+    minHeight: 52,
   },
   // The toggle's own 44pt touch area replaces most of the end padding.
   inputRowWithToggle: {
@@ -110,16 +144,16 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.regular,
     color: Brand.text,
   },
-  // LTR text, still right-aligned like the labels.
-  inputLatin: {
-    writingDirection: 'ltr',
-    textAlign: 'right',
-  },
   toggle: {
     width: 44,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  hint: {
+    fontSize: 12,
+    fontFamily: Fonts.regular,
+    color: Brand.textMuted,
   },
   error: {
     fontSize: 13,

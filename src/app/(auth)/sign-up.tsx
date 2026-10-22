@@ -1,17 +1,18 @@
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
 import { useRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
-import { FormMessage } from '@/components/form-message';
-import { FormScreen } from '@/components/form-screen';
+import { AuthButton } from '@/components/auth-button';
+import { AuthErrorText, AuthScreen } from '@/components/auth-screen';
+import { AuthTextField } from '@/components/auth-text-field';
 import { GradeSectionPicker } from '@/components/grade-section-picker';
-import { PrimaryButton } from '@/components/primary-button';
-import { TextField } from '@/components/text-field';
-import { Colors } from '@/constants/colors';
+import { LockIcon, MailIcon, UserIcon } from '@/components/icons';
 import { signUp } from '@/lib/auth-actions';
 import { authErrorMessage } from '@/lib/auth-errors';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Firebase Auth's own minimum; the design's stricter rules aren't used.
+const MIN_PASSWORD_LENGTH = 6;
 
 type Errors = Partial<Record<'name' | 'email' | 'password' | 'confirm' | 'place', string>>;
 
@@ -20,13 +21,14 @@ function validate(form: { name: string; email: string; password: string; confirm
   if (!form.name.trim()) errors.name = 'أدخل اسمك';
   else if (form.name.trim().length > 100) errors.name = 'الاسم طويل جدًا';
   if (!EMAIL_PATTERN.test(form.email.trim())) errors.email = 'البريد الإلكتروني غير صالح';
-  if (form.password.length < 6) errors.password = 'كلمة المرور ٦ أحرف على الأقل';
+  if (form.password.length < MIN_PASSWORD_LENGTH) errors.password = 'كلمة المرور ٦ أحرف على الأقل';
   if (form.confirm !== form.password) errors.confirm = 'كلمتا المرور غير متطابقتين';
   if (!form.gradeId || !form.sectionId) errors.place = 'اختر الصف والشعبة';
   return errors;
 }
 
-// On success the user is signed in, so the root layout's guard returns to home.
+// Design: docs/1b · Email Sign up-html, plus the grade/section picker that users/{uid} requires
+// (docs/signup-plan.md). On success the user is signed in, so the root layout's guard returns to home.
 export default function SignUpScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -55,82 +57,84 @@ export default function SignUpScreen() {
   }
 
   return (
-    <FormScreen title="إنشاء حساب جديد" subtitle="سنرسل لك رسالة لتأكيد بريدك الإلكتروني.">
-      <TextField
-        label="الاسم"
-        value={name}
-        onChangeText={setName}
-        error={errors.name}
-        autoComplete="name"
-        textContentType="name"
-        returnKeyType="next"
-        onSubmitEditing={() => emailRef.current?.focus()}
-        submitBehavior="submit"
-      />
-      <TextField
-        ref={emailRef}
-        label="البريد الإلكتروني"
-        value={email}
-        onChangeText={setEmail}
-        error={errors.email}
-        keyboardType="email-address"
-        autoComplete="email"
-        textContentType="emailAddress"
-        returnKeyType="next"
-        onSubmitEditing={() => passwordRef.current?.focus()}
-        submitBehavior="submit"
-      />
-      <TextField
-        ref={passwordRef}
-        label="كلمة المرور"
-        password
-        value={password}
-        onChangeText={setPassword}
-        error={errors.password}
-        autoComplete="new-password"
-        textContentType="newPassword"
-        returnKeyType="next"
-        onSubmitEditing={() => confirmRef.current?.focus()}
-        submitBehavior="submit"
-      />
-      <TextField
-        ref={confirmRef}
-        label="تأكيد كلمة المرور"
-        password
-        value={confirm}
-        onChangeText={setConfirm}
-        error={errors.confirm}
-        autoComplete="new-password"
-        textContentType="newPassword"
-        returnKeyType="done"
-      />
-      <GradeSectionPicker value={place} onChange={setPlace} error={errors.place} />
-      <FormMessage message={error} />
-      <PrimaryButton title="إنشاء الحساب" onPress={submit} loading={submitting} />
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>لديك حساب بالفعل؟</Text>
-        <Link href="/sign-in" replace style={styles.link}>
-          تسجيل الدخول
-        </Link>
+    <AuthScreen
+      title="إنشاء حساب جديد"
+      subtitle="احفظ نتائجك ونافس في الدوريات"
+      gap={20}
+      footer={{ prompt: 'لديك حساب بالفعل؟', action: 'تسجيل الدخول', onPress: () => router.replace('/sign-in') }}>
+      <View style={styles.form}>
+        <AuthTextField
+          compact
+          label="الاسم الكامل"
+          icon={UserIcon}
+          value={name}
+          onChangeText={setName}
+          error={errors.name}
+          placeholder="مثال: أحمد علي"
+          autoComplete="name"
+          textContentType="name"
+          returnKeyType="next"
+          onSubmitEditing={() => emailRef.current?.focus()}
+          submitBehavior="submit"
+        />
+        <AuthTextField
+          compact
+          ref={emailRef}
+          label="البريد الإلكتروني"
+          icon={MailIcon}
+          value={email}
+          onChangeText={setEmail}
+          error={errors.email}
+          placeholder="name@example.com"
+          keyboardType="email-address"
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          onSubmitEditing={() => passwordRef.current?.focus()}
+          submitBehavior="submit"
+        />
+        <AuthTextField
+          compact
+          ref={passwordRef}
+          label="كلمة المرور"
+          icon={LockIcon}
+          password
+          value={password}
+          onChangeText={setPassword}
+          error={errors.password}
+          hint={errors.password ? undefined : '٦ أحرف على الأقل'}
+          placeholder="••••••••"
+          autoComplete="new-password"
+          textContentType="newPassword"
+          returnKeyType="next"
+          onSubmitEditing={() => confirmRef.current?.focus()}
+          submitBehavior="submit"
+        />
+        <AuthTextField
+          compact
+          ref={confirmRef}
+          label="تأكيد كلمة المرور"
+          icon={LockIcon}
+          password
+          showToggle={false}
+          value={confirm}
+          onChangeText={setConfirm}
+          error={errors.confirm}
+          placeholder="••••••••"
+          autoComplete="new-password"
+          textContentType="newPassword"
+          returnKeyType="done"
+        />
+        <GradeSectionPicker tone="dark" value={place} onChange={setPlace} error={errors.place} />
+        <AuthButton title="إنشاء الحساب" onPress={submit} loading={submitting} tall />
+        <AuthErrorText message={error} />
       </View>
-    </FormScreen>
+    </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  link: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 8,
-  },
-  footerText: {
-    fontSize: 15,
-    color: Colors.textSecondary,
+  form: {
+    gap: 14,
   },
 });

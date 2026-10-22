@@ -3,7 +3,7 @@ import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 
 import { Brand } from '@/constants/colors';
 
-// Paths copied from the design mockups (docs/1 · Welcome & Auth-html, docs/1a · Email Login-html).
+// Paths copied from the design mockups (docs/1 · Welcome & Auth, 1a · Email Login, 1b · Email Sign up).
 // All are decorative.
 
 type IconProps = { color: string; size?: number };
@@ -59,6 +59,15 @@ export function MailIcon(props: IconProps) {
     <StrokeIcon {...props}>
       <Rect x={3} y={5} width={18} height={14} rx={2} />
       <Path d="m3 7 9 6 9-6" />
+    </StrokeIcon>
+  );
+}
+
+export function UserIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Circle cx={12} cy={8} r={4} />
+      <Path d="M4 21a8 8 0 0 1 16 0" />
     </StrokeIcon>
   );
 }

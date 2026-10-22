@@ -13,10 +13,12 @@ type Props = {
   icon?: ReactNode;
   /** Shows a spinner and ignores presses, e.g. while a request is in flight. */
   loading?: boolean;
+  /** 56 instead of 54: the forms' submit buttons. */
+  tall?: boolean;
 };
 
 /** Large button of the dark welcome design. */
-export function AuthButton({ title, onPress, variant = 'primary', icon, loading }: Props) {
+export function AuthButton({ title, onPress, variant = 'primary', icon, loading, tall }: Props) {
   const outline = variant === 'outline';
   return (
     <Pressable
@@ -25,7 +27,7 @@ export function AuthButton({ title, onPress, variant = 'primary', icon, loading 
       accessibilityRole="button"
       accessibilityLabel={title}
       accessibilityState={{ disabled: loading, busy: loading }}
-      style={({ pressed }) => [styles.button, outline && styles.outline, pressed && styles.pressed]}>
+      style={({ pressed }) => [styles.button, tall && styles.tall, outline && styles.outline, pressed && styles.pressed]}>
       {loading ? (
         <ActivityIndicator color={Brand.white} />
       ) : (
@@ -48,6 +50,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
+  },
+  tall: {
+    minHeight: 56,
   },
   outline: {
     backgroundColor: Brand.surface,

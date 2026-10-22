@@ -3,7 +3,8 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 
 import { LOAD_ERROR_MESSAGE } from '@/components/empty-state';
 import { SegmentedControl } from '@/components/segmented-control';
-import { Colors } from '@/constants/colors';
+import { Brand, Colors } from '@/constants/colors';
+import { Fonts } from '@/constants/fonts';
 import { useGrades, useSections } from '@/data/content';
 
 type Value = { gradeId: string; sectionId: string };
@@ -12,10 +13,12 @@ type Props = {
   value: Value;
   onChange: (value: Value) => void;
   error?: string | null;
+  /** 'dark' for the screens built from the new dark designs (sign-up). */
+  tone?: 'light' | 'dark';
 };
 
 /** Grade (الصف) and section (الشعبة) picked from the live Firestore tree. */
-export function GradeSectionPicker({ value, onChange, error }: Props) {
+export function GradeSectionPicker({ value, onChange, error, tone = 'light' }: Props) {
   const grades = useGrades();
   const sections = useSections(value.gradeId);
 
@@ -31,19 +34,21 @@ export function GradeSectionPicker({ value, onChange, error }: Props) {
 
   return (
     <View style={styles.container}>
-      <Field label="الصف" loading={grades.loading} failed={!!grades.error}>
+      <Field label="الصف" loading={grades.loading} failed={!!grades.error} tone={tone}>
         <Options
+          tone={tone}
           options={grades.data}
           selectedId={value.gradeId}
           onChange={(gradeId) => gradeId !== value.gradeId && onChange({ gradeId, sectionId: '' })}
         />
       </Field>
       {value.gradeId ? (
-        <Field label="الشعبة" loading={sections.loading} failed={!!sections.error}>
+        <Field label="الشعبة" loading={sections.loading} failed={!!sections.error} tone={tone}>
           {sections.data.length === 0 && !sections.loading ? (
-            <Text style={styles.hint}>لا توجد شعب لهذا الصف بعد.</Text>
+            <Text style={[styles.hint, tone === 'dark' && styles.hintDark]}>لا توجد شعب لهذا الصف بعد.</Text>
           ) : (
             <Options
+              tone={tone}
               options={sections.data}
               selectedId={value.sectionId}
               onChange={(sectionId) => onChange({ gradeId: value.gradeId, sectionId })}
@@ -51,7 +56,7 @@ export function GradeSectionPicker({ value, onChange, error }: Props) {
           )}
         </Field>
       ) : null}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={[styles.error, tone === 'dark' && styles.errorDark]}>{error}</Text> : null}
     </View>
   );
 }
@@ -60,20 +65,23 @@ function Field({
   label,
   loading,
   failed,
+  tone,
   children,
 }: {
   label: string;
   loading: boolean;
   failed: boolean;
+  tone: 'light' | 'dark';
   children: React.ReactNode;
 }) {
+  const dark = tone === 'dark';
   return (
     <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, dark && styles.labelDark]}>{label}</Text>
       {loading ? (
-        <ActivityIndicator color={Colors.primary} style={styles.loading} />
+        <ActivityIndicator color={dark ? Brand.link : Colors.primary} style={styles.loading} />
       ) : failed ? (
-        <Text style={styles.error}>{LOAD_ERROR_MESSAGE}</Text>
+        <Text style={[styles.error, dark && styles.errorDark]}>{LOAD_ERROR_MESSAGE}</Text>
       ) : (
         children
       )}
@@ -86,14 +94,18 @@ function Options({
   options,
   selectedId,
   onChange,
+  tone,
 }: {
   options: { id: string; name: string }[];
   selectedId: string;
   onChange: (id: string) => void;
+  tone: 'light' | 'dark';
 }) {
+  const dark = tone === 'dark';
   if (options.length <= 3) {
     return (
       <SegmentedControl
+        tone={tone}
         options={options.map((o) => ({ id: o.id, label: o.name }))}
         selectedId={selectedId}
         onChange={onChange}
@@ -110,8 +122,22 @@ function Options({
             onPress={() => onChange(option.id)}
             accessibilityRole="radio"
             accessibilityState={{ selected }}
-            style={({ pressed }) => [styles.chip, selected && styles.chipSelected, pressed && styles.pressed]}>
-            <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{option.name}</Text>
+            style={({ pressed }) => [
+              styles.chip,
+              selected && styles.chipSelected,
+              dark && styles.chipDark,
+              dark && selected && styles.chipSelectedDark,
+              pressed && styles.pressed,
+            ]}>
+            <Text
+              style={[
+                styles.chipText,
+                selected && styles.chipTextSelected,
+                dark && styles.chipTextDark,
+                dark && selected && styles.chipTextSelectedDark,
+              ]}>
+              {option.name}
+            </Text>
           </Pressable>
         );
       })}
@@ -169,5 +195,37 @@ const styles = StyleSheet.create({
   chipTextSelected: {
     color: Colors.primary,
     fontWeight: '600',
+  },
+  // Dark tone (sign-up). Cairo has a separate family per weight, so fontWeight is reset.
+  labelDark: {
+    fontFamily: Fonts.semiBold,
+    fontWeight: 'normal',
+    color: Brand.text,
+  },
+  hintDark: {
+    fontFamily: Fonts.regular,
+    color: Brand.textMuted,
+  },
+  errorDark: {
+    fontFamily: Fonts.regular,
+    color: Brand.error,
+  },
+  chipDark: {
+    borderWidth: 1.5,
+    borderColor: Brand.border,
+    backgroundColor: Brand.surface,
+  },
+  chipSelectedDark: {
+    borderColor: Brand.primaryBright,
+    backgroundColor: Brand.primarySoft,
+  },
+  chipTextDark: {
+    fontFamily: Fonts.semiBold,
+    fontWeight: 'normal',
+    color: Brand.text,
+  },
+  chipTextSelectedDark: {
+    fontFamily: Fonts.bold,
+    color: Brand.link,
   },
 });
