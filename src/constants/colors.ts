@@ -23,6 +23,7 @@ export const Brand = {
   border: '#334155',
   text: '#F8FAFC',
   textMuted: '#94A3B8',
+  placeholder: '#64748B',
   primary: '#4F46E5',
   primaryBright: '#6366F1',
   link: '#A5B4FC',

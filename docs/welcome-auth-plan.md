@@ -215,3 +215,19 @@ The app forces RTL (`expo-localization` plugin + `+html.tsx`), so `flexDirection
 - [ ] Carousel swipes the right way in RTL on Android and iOS. Dots stay in sync
 - [ ] Small phone + large font size: everything reachable by scrolling
 - [ ] Deep link to `/grades/...` while signed out still opens the exam
+
+## 11. Sign-in screen (design `1a · Email Login`)
+
+**Done.** `src/app/(auth)/sign-in.tsx` follows [`docs/1a · Email Login-html/Login.dc.html`](<1a · Email Login-html/Login.dc.html>): own back button (no native header), «أهلاً بعودتك», email + password fields with icons and a focus ring, «تذكّرني», «نسيت كلمة المرور؟», «تسجيل الدخول», «أو», Google (outline), «ليس لديك حساب؟ إنشاء حساب».
+
+| Piece | Where |
+|---|---|
+| Dark input with icon, focus ring, show/hide password | `src/components/auth-text-field.tsx` |
+| Checkbox | `src/components/checkbox.tsx` |
+| Google badge, lock/eye/back/check icons | `src/components/icons.tsx` |
+| Google button logic (shared with welcome) | `src/hooks/use-google-sign-in.ts` |
+| Light status bar on dark screens (shared with welcome) | `src/hooks/use-light-status-bar.ts` |
+
+- **«تذكّرني»** (checked by default): when unchecked, `signIn` stores `auth.forgetSession`. On the next launch `AuthProvider` calls `forgetSessionIfAsked()` *before* subscribing to auth state, so the user starts signed out without home flashing. `signOut()` clears the flag. This works the same on all platforms (Firebase's own persistence switch is web-only).
+- **Back** with no history (opened by URL) replaces with `/welcome` (or `/` for guests). `router.replace` to a screen whose guard is false is silently ignored.
+- Sign-up and forgot-password keep the old light look until their designs arrive.

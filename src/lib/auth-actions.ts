@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -52,8 +53,24 @@ export async function createProfile({ name, gradeId, sectionId }: ProfileFields)
   });
 }
 
-export function signIn(email: string, password: string) {
-  return signInWithEmailAndPassword(auth, email.trim(), password);
+// Set while a session signed in with «تذكّرني» unchecked is active; see forgetSessionIfAsked.
+const FORGET_SESSION_KEY = 'auth.forgetSession';
+
+export async function signIn(email: string, password: string, remember = true) {
+  await signInWithEmailAndPassword(auth, email.trim(), password);
+  if (!remember) await AsyncStorage.setItem(FORGET_SESSION_KEY, '1').catch(() => {});
+}
+
+/**
+ * Called once at startup, before reading the auth state: signs out a session that was signed in
+ * with «تذكّرني» unchecked, so it lasts only until the app is closed. Same on every platform,
+ * unlike Firebase's persistence options.
+ */
+export async function forgetSessionIfAsked() {
+  if ((await AsyncStorage.getItem(FORGET_SESSION_KEY)) !== '1') return;
+  await AsyncStorage.removeItem(FORGET_SESSION_KEY);
+  await auth.authStateReady();
+  if (auth.currentUser) await firebaseSignOut(auth);
 }
 
 export function sendPasswordReset(email: string) {
@@ -67,5 +84,6 @@ export async function resendVerification() {
 export async function signOut() {
   // Best effort: a failure here shouldn't keep the user signed in to the app.
   await signOutOfGoogle().catch(() => {});
+  await AsyncStorage.removeItem(FORGET_SESSION_KEY).catch(() => {});
   await firebaseSignOut(auth);
 }

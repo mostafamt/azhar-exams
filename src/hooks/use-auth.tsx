@@ -4,7 +4,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { createContext, use, useCallback, useEffect, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
 
-import type { UserProfile } from '@/lib/auth-actions';
+import { forgetSessionIfAsked, type UserProfile } from '@/lib/auth-actions';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 
@@ -45,19 +45,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // undefined = not read from storage yet
   const [guest, setGuest] = useState<boolean | undefined>(undefined);
 
-  useEffect(
-    () =>
-      onAuthStateChanged(auth, (next) => {
-        setUser(next);
-        setEmailVerified(next?.emailVerified ?? false);
-        // A signed-in user is no longer a guest, so signing out later shows the welcome screen again.
-        if (next) {
-          setGuest(false);
-          storeGuest(false);
-        }
-      }),
-    []
-  );
+  useEffect(() => {
+    let active = true;
+    let unsubscribe: (() => void) | undefined;
+    // Subscribe only after a session the user didn't want kept is gone, so home never flashes.
+    forgetSessionIfAsked()
+      .catch(() => {})
+      .finally(() => {
+        if (!active) return;
+        unsubscribe = onAuthStateChanged(auth, (next) => {
+          setUser(next);
+          setEmailVerified(next?.emailVerified ?? false);
+          // A signed-in user is no longer a guest, so signing out later shows the welcome screen again.
+          if (next) {
+            setGuest(false);
+            storeGuest(false);
+          }
+        });
+      });
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
+  }, []);
 
   useEffect(() => {
     // Don't overwrite a value the auth listener already set while this was loading.

@@ -16,6 +16,9 @@ const theme = {
   colors: { ...DefaultTheme.colors, background: Colors.background, primary: Colors.primary },
 };
 
+// Screens built from the new dark designs draw their own header (or none).
+const darkScreenOptions = { headerShown: false, contentStyle: { backgroundColor: Brand.background } };
+
 export default function RootLayout() {
   return (
     // RTL is forced natively by the expo-localization plugin (app.json); +html.tsx covers web.
@@ -62,10 +65,7 @@ function RootStack() {
         headerBackButtonDisplayMode: 'minimal',
       }}>
       <Stack.Protected guard={showWelcome}>
-        <Stack.Screen
-          name="welcome"
-          options={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: Brand.background } }}
-        />
+        <Stack.Screen name="welcome" options={{ ...darkScreenOptions, animation: 'fade' }} />
       </Stack.Protected>
       <Stack.Protected guard={!showWelcome}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -73,7 +73,7 @@ function RootStack() {
       {/* Not guarded, so links to grades and exams work for everyone. */}
       <Stack.Screen name="grades/index" options={{ title: 'الصفوف' }} />
       <Stack.Protected guard={!user}>
-        <Stack.Screen name="(auth)/sign-in" options={{ title: 'تسجيل الدخول' }} />
+        <Stack.Screen name="(auth)/sign-in" options={darkScreenOptions} />
         <Stack.Screen name="(auth)/sign-up" options={{ title: 'إنشاء حساب' }} />
         <Stack.Screen name="(auth)/forgot-password" options={{ title: 'استعادة كلمة المرور' }} />
       </Stack.Protected>

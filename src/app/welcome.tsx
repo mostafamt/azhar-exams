@@ -1,18 +1,16 @@
-import { router, useFocusEffect } from 'expo-router';
-import { setStatusBarStyle } from 'expo-status-bar';
-import { useCallback, useState } from 'react';
+import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthButton } from '@/components/auth-button';
 import { BrandLogo } from '@/components/brand-logo';
 import { FeatureCarousel } from '@/components/feature-carousel';
-import { MailIcon } from '@/components/icons';
+import { GoogleBadge, MailIcon } from '@/components/icons';
 import { Brand } from '@/constants/colors';
 import { Fonts } from '@/constants/fonts';
 import { useAuth } from '@/hooks/use-auth';
-import { authErrorMessage, isCancelledSignIn } from '@/lib/auth-errors';
-import { signInWithGoogle } from '@/lib/google-sign-in';
+import { useGoogleSignIn } from '@/hooks/use-google-sign-in';
+import { useLightStatusBar } from '@/hooks/use-light-status-bar';
 
 /**
  * First screen for signed-out users who haven't chosen to browse as a guest. Signing in or
@@ -21,27 +19,8 @@ import { signInWithGoogle } from '@/lib/google-sign-in';
 export default function WelcomeScreen() {
   const { continueAsGuest } = useAuth();
   const insets = useSafeAreaInsets();
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Dark screen in a light app: light status bar only while this screen is on top.
-  useFocusEffect(
-    useCallback(() => {
-      setStatusBarStyle('light');
-      return () => setStatusBarStyle('auto');
-    }, [])
-  );
-
-  async function continueWithGoogle() {
-    setGoogleLoading(true);
-    setError(null);
-    try {
-      await signInWithGoogle();
-    } catch (e) {
-      if (!isCancelledSignIn(e)) setError(authErrorMessage(e));
-      setGoogleLoading(false);
-    }
-  }
+  const google = useGoogleSignIn();
+  useLightStatusBar();
 
   return (
     <ScrollView
@@ -53,7 +32,7 @@ export default function WelcomeScreen() {
       <View style={styles.header}>
         <BrandLogo />
         <Text style={styles.appName} accessibilityRole="header">
-          نوابغ
+          نوابغ الأزهر
         </Text>
         <Text style={styles.tagline}>تنافس، تعلّم، وتصدّر القمة</Text>
       </View>
@@ -65,13 +44,9 @@ export default function WelcomeScreen() {
       <View style={styles.actions}>
         <AuthButton
           title="المتابعة باستخدام Google"
-          onPress={continueWithGoogle}
-          loading={googleLoading}
-          icon={
-            <View style={styles.googleBadge}>
-              <Text style={styles.googleLetter}>G</Text>
-            </View>
-          }
+          onPress={google.signIn}
+          loading={google.loading}
+          icon={<GoogleBadge />}
         />
         <View style={styles.divider} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <View style={styles.dividerLine} />
@@ -84,9 +59,9 @@ export default function WelcomeScreen() {
           onPress={() => router.push('/sign-up')}
           icon={<MailIcon color={Brand.link} size={20} />}
         />
-        {error ? (
+        {google.error ? (
           <Text style={styles.error} accessibilityRole="alert">
-            {error}
+            {google.error}
           </Text>
         ) : null}
         <View style={styles.signInRow}>
@@ -139,19 +114,6 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: 10,
-  },
-  googleBadge: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: Brand.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  googleLetter: {
-    color: Brand.google,
-    fontSize: 16,
-    fontWeight: '700',
   },
   divider: {
     flexDirection: 'row',
