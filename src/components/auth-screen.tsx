@@ -10,20 +10,23 @@ import { useAuth } from '@/hooks/use-auth';
 import { useLightStatusBar } from '@/hooks/use-light-status-bar';
 
 type Props = {
-  title: string;
-  subtitle: string;
-  /** Space between the blocks; the designs use 24 (sign-in) and 20 (sign-up). */
+  /** Leave out to draw a custom header in `children` (forgot-password). */
+  title?: string;
+  subtitle?: string;
+  /** Space between the blocks; the designs use 24 (sign-in), 20 (sign-up) and 28 (forgot-password). */
   gap: number;
   /** Bottom line, e.g. «ليس لديك حساب؟ إنشاء حساب». */
-  footer: { prompt: string; action: string; onPress: () => void };
+  footer?: { prompt: string; action: string; onPress: () => void };
+  /** Screen-reader label of the back button. */
+  backLabel?: string;
   children: ReactNode;
 };
 
 /**
- * Frame of the dark auth designs (docs/1a, 1b): back button, title, the screen's content, then
+ * Frame of the dark auth designs (docs/1a, 1b, 1c): back button, title, the screen's content, then
  * the footer pinned to the bottom. Scrolls and avoids the keyboard on small screens.
  */
-export function AuthScreen({ title, subtitle, gap, footer, children }: Props) {
+export function AuthScreen({ title, subtitle, gap, footer, backLabel = 'رجوع', children }: Props) {
   const insets = useSafeAreaInsets();
   const { isGuest } = useAuth();
   useLightStatusBar();
@@ -43,27 +46,32 @@ export function AuthScreen({ title, subtitle, gap, footer, children }: Props) {
           styles.content,
           { gap, paddingTop: Math.max(20, insets.top + 8), paddingBottom: Math.max(24, insets.bottom + 12) },
         ]}>
-        <Pressable onPress={goBack} accessibilityRole="button" accessibilityLabel="رجوع" style={styles.back}>
+        <Pressable onPress={goBack} accessibilityRole="button" accessibilityLabel={backLabel} style={styles.back}>
           <BackIcon color={Brand.text} size={20} />
         </Pressable>
 
-        <View style={styles.header}>
-          <Text style={styles.title} accessibilityRole="header">
-            {title}
-          </Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
-        </View>
+        {title ? (
+          <View style={styles.header}>
+            <Text style={styles.title} accessibilityRole="header">
+              {title}
+            </Text>
+            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+          </View>
+        ) : null}
 
         {children}
 
-        <View style={styles.spacer} />
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>{footer.prompt}</Text>
-          <Pressable onPress={footer.onPress} accessibilityRole="link" hitSlop={8}>
-            <Text style={styles.footerLink}>{footer.action}</Text>
-          </Pressable>
-        </View>
+        {footer ? (
+          <>
+            <View style={styles.spacer} />
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>{footer.prompt}</Text>
+              <Pressable onPress={footer.onPress} accessibilityRole="link" hitSlop={8}>
+                <Text style={styles.footerLink}>{footer.action}</Text>
+              </Pressable>
+            </View>
+          </>
+        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );

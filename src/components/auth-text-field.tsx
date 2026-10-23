@@ -69,7 +69,7 @@ export function AuthTextField({
             setFocused(false);
             onBlur?.(event);
           }}
-          style={[styles.input, webInput, latin && webLatinInput, style]}
+          style={[styles.input, webInput, latin && latinInput, style]}
           {...props}
         />
         {password && showToggle && (
@@ -96,7 +96,9 @@ export function AuthTextField({
 const webInput =
   Platform.OS === 'web' ? ({ textAlign: 'right', outlineStyle: 'none' } as unknown as TextStyle) : null;
 // Emails and passwords are typed left-to-right but stay right-aligned like the labels.
-const webLatinInput: TextStyle | null = Platform.OS === 'web' ? { writingDirection: 'ltr' } : null;
+// Android aligns by the text's own direction, so LTR text would sit on the left without this.
+const latinInput: TextStyle | null =
+  Platform.OS === 'web' ? { writingDirection: 'ltr' } : Platform.OS === 'android' ? { textAlign: 'right' } : null;
 
 const styles = StyleSheet.create({
   container: {

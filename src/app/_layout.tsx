@@ -1,7 +1,7 @@
 import { useFonts } from 'expo-font';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet, type ViewStyle } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
@@ -16,9 +16,10 @@ const theme = {
   colors: { ...DefaultTheme.colors, background: Colors.background, primary: Colors.primary },
 };
 
-// Repeated per screen: native-stack screens are hosted in their own native containers, so the
-// root's direction may not reach them.
-const rtl = { direction: 'rtl' } as const;
+// iOS/Android only (web gets dir="rtl" from +html.tsx and rejects this style). Repeated per
+// screen: native-stack screens are hosted in their own native containers, so the root's
+// direction may not reach them.
+const rtl: ViewStyle = Platform.OS === 'web' ? {} : { direction: 'rtl' };
 
 // Screens built from the new dark designs draw their own header (or none).
 const darkScreenOptions = { headerShown: false, contentStyle: { ...rtl, backgroundColor: Brand.background } };
@@ -28,7 +29,7 @@ export default function RootLayout() {
     // RTL: the expo-localization plugin (app.json) forces it in native builds, but Expo Go ignores
     // config plugins, so the root also sets `direction: 'rtl'`, which every screen inherits.
     // +html.tsx covers web.
-    <GestureHandlerRootView style={styles.root}>
+    <GestureHandlerRootView style={[styles.root, rtl]}>
       <ThemeProvider value={theme}>
         <AuthProvider>
           <AppContent />
@@ -82,7 +83,7 @@ function RootStack() {
       <Stack.Protected guard={!user}>
         <Stack.Screen name="(auth)/sign-in" options={darkScreenOptions} />
         <Stack.Screen name="(auth)/sign-up" options={darkScreenOptions} />
-        <Stack.Screen name="(auth)/forgot-password" options={{ title: 'استعادة كلمة المرور' }} />
+        <Stack.Screen name="(auth)/forgot-password" options={darkScreenOptions} />
       </Stack.Protected>
       <Stack.Protected guard={!!user && !initializing && !profile}>
         <Stack.Screen name="complete-profile" options={{ title: 'أكمل بياناتك' }} />
@@ -94,6 +95,5 @@ function RootStack() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    direction: 'rtl',
   },
 });

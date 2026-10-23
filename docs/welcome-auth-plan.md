@@ -231,3 +231,15 @@ The app forces RTL (`expo-localization` plugin + `+html.tsx`), so `flexDirection
 - **«تذكّرني»** (checked by default): when unchecked, `signIn` stores `auth.forgetSession`. On the next launch `AuthProvider` calls `forgetSessionIfAsked()` *before* subscribing to auth state, so the user starts signed out without home flashing. `signOut()` clears the flag. This works the same on all platforms (Firebase's own persistence switch is web-only).
 - **Back** with no history (opened by URL) replaces with `/welcome` (or `/` for guests). `router.replace` to a screen whose guard is false is silently ignored.
 - Sign-up and forgot-password keep the old light look until their designs arrive.
+
+## 12. Forgot-password screen (design `1c · Forgot Password`)
+
+**Done.** `src/app/(auth)/forgot-password.tsx` follows [`docs/1c · Forgot Password-html/Forgot.dc.html`](<1c · Forgot Password-html/Forgot.dc.html>) on the shared `AuthScreen` frame. `title`, `subtitle` and `footer` are now optional there, and `backLabel` sets the back button's label («رجوع لتسجيل الدخول»).
+
+- **Ask state:** key icon tile, «نسيت كلمة المرور؟», body text, email field, «إرسال رابط إعادة التعيين».
+- **Sent state:** green mail circle with ring, «تحقّق من بريدك», the email, «العودة لتسجيل الدخول», «لم يصلك البريد؟ إعادة الإرسال».
+- **Wording:** Firebase doesn't reveal whether an email is registered, so the sent text reads «إذا كان هذا البريد مسجّلًا، أرسلنا رابط إعادة التعيين إلى» instead of the design's flat «أرسلنا…».
+- **«إعادة الإرسال»** resends to the same address at once, with a 60-second cooldown (the design's prototype just went back to the form).
+- **RTL fix:** `direction: 'rtl'` (for Expo Go, see `_layout.tsx`) is applied on iOS/Android only. react-native-web rejects that style, and web already has `dir="rtl"`.
+
+`FormScreen` and the light `TextField` are now used only by `complete-profile.tsx`; `PrimaryButton` by it and home (`index.tsx`).

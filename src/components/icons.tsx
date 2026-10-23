@@ -3,7 +3,8 @@ import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 
 import { Brand } from '@/constants/colors';
 
-// Paths copied from the design mockups (docs/1 · Welcome & Auth, 1a · Email Login, 1b · Email Sign up).
+// Paths copied from the design mockups (docs/1 · Welcome & Auth, 1a · Email Login, 1b · Email Sign up,
+// 1c · Forgot Password).
 // All are decorative.
 
 type IconProps = { color: string; size?: number };
@@ -68,6 +69,15 @@ export function UserIcon(props: IconProps) {
     <StrokeIcon {...props}>
       <Circle cx={12} cy={8} r={4} />
       <Path d="M4 21a8 8 0 0 1 16 0" />
+    </StrokeIcon>
+  );
+}
+
+export function KeyIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Circle cx={8} cy={15} r={4} />
+      <Path d="m10.8 12.2 8.2-8.2M17 6l2 2M15 8l2 2" />
     </StrokeIcon>
   );
 }
