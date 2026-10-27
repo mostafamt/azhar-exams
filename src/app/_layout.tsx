@@ -76,7 +76,7 @@ function RootStack() {
         <Stack.Screen name="welcome" options={{ ...darkScreenOptions, animation: 'fade' }} />
       </Stack.Protected>
       <Stack.Protected guard={!showWelcome}>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={darkScreenOptions} />
       </Stack.Protected>
       {/* Not guarded, so links to grades and exams work for everyone. */}
       <Stack.Screen name="grades/index" options={{ title: 'الصفوف' }} />

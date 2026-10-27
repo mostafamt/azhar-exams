@@ -16,7 +16,7 @@ export const Colors = {
   onOverlay: '#ffffff',
 };
 
-/** Dark palette from the new designs (docs/1 · Welcome & Auth-html). Only the welcome screen uses it so far. */
+/** Dark palette from the new designs (docs/1 · Welcome & Auth-html, docs/2 · Home-html). */
 export const Brand = {
   background: '#0F172A',
   surface: '#1E293B',
@@ -29,8 +29,18 @@ export const Brand = {
   /** Selected chips / segments. */
   primarySoft: 'rgba(99,102,241,0.18)',
   link: '#A5B4FC',
+  /** Announcement cards and the avatar. */
+  primaryDeep: '#312E81',
+  /** Text on `primaryDeep`. */
+  primaryPale: '#C7D2FE',
+  /** Dark text on light badges. */
+  ink: '#1E1B4B',
   accent: '#F59E0B',
+  accentBright: '#FBBF24',
+  accentSoft: 'rgba(245,158,11,0.16)',
   success: '#34D399',
+  successStrong: '#10B981',
+  successSoft: 'rgba(16,185,129,0.16)',
   error: '#F87171',
   google: '#4285F4',
   white: '#FFFFFF',

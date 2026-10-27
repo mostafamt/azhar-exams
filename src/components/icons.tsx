@@ -4,17 +4,17 @@ import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 import { Brand } from '@/constants/colors';
 
 // Paths copied from the design mockups (docs/1 · Welcome & Auth, 1a · Email Login, 1b · Email Sign up,
-// 1c · Forgot Password).
+// 1c · Forgot Password, 2 · Home).
 // All are decorative.
 
-type IconProps = { color: string; size?: number };
+type IconProps = { color: string; size?: number; strokeWidth?: number };
 
 function StrokeIcon({
   color,
   size = 24,
   strokeWidth = 2,
   children,
-}: IconProps & { strokeWidth?: number; children: React.ReactNode }) {
+}: IconProps & { children: React.ReactNode }) {
   return (
     <Svg
       width={size}
@@ -106,6 +106,51 @@ export function EyeOffIcon(props: IconProps) {
       <Path d="M10.7 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-2.2 3.1" />
       <Path d="M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6" />
       <Path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M2 2l20 20" />
+    </StrokeIcon>
+  );
+}
+
+export function HomeIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />
+    </StrokeIcon>
+  );
+}
+
+export function TrophyIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" />
+      <Path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" />
+    </StrokeIcon>
+  );
+}
+
+export function TargetIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Circle cx={12} cy={12} r={9} />
+      <Circle cx={12} cy={12} r={5} />
+      <Circle cx={12} cy={12} r={1} />
+    </StrokeIcon>
+  );
+}
+
+export function BellIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M6 9a6 6 0 0 1 12 0c0 6 3 7 3 7H3s3-1 3-7M10 20a2 2 0 0 0 4 0" />
+    </StrokeIcon>
+  );
+}
+
+/** Not in the mockups; drawn in the same style for the exam year. */
+export function CalendarIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Rect x={4} y={5} width={16} height={16} rx={2} />
+      <Path d="M8 3v4M16 3v4M4 10h16" />
     </StrokeIcon>
   );
 }

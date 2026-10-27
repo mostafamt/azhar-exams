@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Colors } from '@/constants/colors';
+import { Brand } from '@/constants/colors';
+import { Fonts } from '@/constants/fonts';
 import { useAuth } from '@/hooks/use-auth';
 import { resendVerification } from '@/lib/auth-actions';
 import { authErrorMessage } from '@/lib/auth-errors';
@@ -70,20 +71,24 @@ export function VerifyEmailBanner() {
 const styles = StyleSheet.create({
   container: {
     alignSelf: 'stretch',
-    backgroundColor: Colors.warningSoft,
-    borderRadius: 12,
+    backgroundColor: Brand.accentSoft,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.35)',
+    borderRadius: 16,
     padding: 14,
     gap: 6,
   },
   title: {
     fontSize: 15,
-    fontWeight: '700',
-    color: Colors.warning,
+    lineHeight: 24,
+    fontFamily: Fonts.bold,
+    color: Brand.accentBright,
   },
   body: {
     fontSize: 14,
-    lineHeight: 21,
-    color: Colors.text,
+    lineHeight: 22,
+    fontFamily: Fonts.regular,
+    color: Brand.text,
   },
   actions: {
     flexDirection: 'row',
@@ -92,8 +97,9 @@ const styles = StyleSheet.create({
   },
   action: {
     fontSize: 14,
-    fontWeight: '700',
-    color: Colors.primary,
+    lineHeight: 22,
+    fontFamily: Fonts.bold,
+    color: Brand.link,
   },
   actionDisabled: {
     opacity: 0.5,

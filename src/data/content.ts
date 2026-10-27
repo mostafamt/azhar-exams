@@ -159,6 +159,73 @@ export function useExam(gradeId: string, sectionId: string, subjectId: string, e
   return useDocument<Exam>([gradeId, sectionId, subjectId, examId]);
 }
 
+export type SectionExam = Exam & { subject: Subject };
+
+/**
+ * The newest `max` exams across all subjects of a section (by year, then subject and exam order).
+ * One listener per subject; fine for a section's handful of subjects.
+ */
+export function useLatestExams(
+  gradeId: string | undefined,
+  sectionId: string | undefined,
+  max: number
+): Loadable<SectionExam[]> {
+  const subjects = useSubjects(gradeId ?? '', gradeId ? sectionId : undefined);
+  const subjectIds = subjects.data.map((subject) => subject.id).join(',');
+  const key = subjects.loading || !gradeId || !sectionId ? null : `${gradeId}/${sectionId}/${subjectIds}`;
+  const [state, setState] = useState<{ key: string | null; bySubject: Record<string, Exam[]>; error: Error | null }>({
+    key: null,
+    bySubject: {},
+    error: null,
+  });
+
+  useEffect(() => {
+    if (!key || !gradeId || !sectionId || !subjectIds) return;
+    // Results from a previous key are dropped, so a stale listener can't mix in another section.
+    const update = (subjectId: string, exams: Exam[] | null, error: Error | null) =>
+      setState((current) => {
+        const base = current.key === key ? current : { key, bySubject: {}, error: null };
+        return {
+          key,
+          bySubject: { ...base.bySubject, [subjectId]: exams ?? [] },
+          error: error ?? base.error,
+        };
+      });
+    const unsubscribes = subjectIds.split(',').map((subjectId) =>
+      onSnapshot(
+        collection(db, collectionPath([gradeId, sectionId, subjectId])),
+        (snapshot) => update(subjectId, snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Exam), null),
+        (error) => update(subjectId, null, error)
+      )
+    );
+    return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+  }, [key, gradeId, sectionId, subjectIds]);
+
+  if (!gradeId || !sectionId) return { data: [], loading: false, error: null };
+  if (subjects.loading) return { data: [], loading: true, error: null };
+  if (subjects.error) return { data: [], loading: false, error: subjects.error };
+  if (subjects.data.length === 0) return { data: [], loading: false, error: null };
+
+  const current = state.key === key ? state : null;
+  const loading = !current || subjects.data.some((subject) => !(subject.id in current.bySubject));
+  if (loading) return { data: [], loading: true, error: null };
+
+  const data = subjects.data
+    .flatMap((subject) => sortNodes(current.bySubject[subject.id]).map((exam) => ({ ...exam, subject })))
+    // Stable sort, so equal years keep the subject and exam order from above.
+    .sort((a, b) => (b.year ?? 0) - (a.year ?? 0))
+    .slice(0, max);
+  return { data, loading: false, error: current.error };
+}
+
+/** Short term name for chips, e.g. «الفصل الأول». */
+export function termLabel(term: Exam['term']) {
+  if (term === 'first') return 'الفصل الأول';
+  if (term === 'second') return 'الفصل الثاني';
+  if (term === 'retake') return 'الدور الثاني';
+  return null;
+}
+
 /** Subjects grouped under their categories, in order. Subjects without a known category go under "أخرى". */
 export function groupByCategory(categories: Category[], subjects: Subject[]) {
   const groups = categories
