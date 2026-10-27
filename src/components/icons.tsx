@@ -155,6 +155,40 @@ export function CalendarIcon(props: IconProps) {
   );
 }
 
+export function CloseIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M6 6l12 12M18 6 6 18" />
+    </StrokeIcon>
+  );
+}
+
+export function ClockIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Circle cx={12} cy={12} r={9} />
+      <Path d="M12 7v5l3 2" />
+    </StrokeIcon>
+  );
+}
+
+export function BookmarkIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M6 3h12v18l-6-4-6 4z" />
+    </StrokeIcon>
+  );
+}
+
+/** Points left: "next" in RTL. */
+export function ForwardIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="m15 6-6 6 6 6" />
+    </StrokeIcon>
+  );
+}
+
 /** Points right: "back" in RTL. */
 export function BackIcon(props: IconProps) {
   return (

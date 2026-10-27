@@ -42,6 +42,9 @@ export const Brand = {
   successStrong: '#10B981',
   successSoft: 'rgba(16,185,129,0.16)',
   error: '#F87171',
+  /** Low-time timer and wrong answers. */
+  danger: '#EF4444',
+  dangerSoft: 'rgba(239,68,68,0.16)',
   google: '#4285F4',
   white: '#FFFFFF',
 };

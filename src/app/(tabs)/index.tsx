@@ -96,7 +96,7 @@ export default function HomeScreen() {
             Icon={TargetIcon}
             color={Brand.link}
             background={Brand.primarySoft}
-            onPress={openMyExams}
+            onPress={() => router.push('/quick-test')}
           />
           <QuickAction label="الدوري الحالي" Icon={TrophyIcon} color={Brand.accentBright} background={Brand.accentSoft} />
           <QuickAction label="سجل النتائج" Icon={ChartIcon} color={Brand.success} background={Brand.successSoft} />

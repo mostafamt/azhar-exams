@@ -80,6 +80,11 @@ function RootStack() {
       </Stack.Protected>
       {/* Not guarded, so links to grades and exams work for everyone. */}
       <Stack.Screen name="grades/index" options={{ title: 'الصفوف' }} />
+      {/* No swipe back: leaving a running test goes through its confirm dialog. */}
+      <Stack.Screen
+        name="quick-test"
+        options={{ ...darkScreenOptions, gestureEnabled: false, animation: 'slide_from_bottom' }}
+      />
       <Stack.Protected guard={!user}>
         <Stack.Screen name="(auth)/sign-in" options={darkScreenOptions} />
         <Stack.Screen name="(auth)/sign-up" options={darkScreenOptions} />
