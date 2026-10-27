@@ -27,5 +27,10 @@ export function isCancelledSignIn(error: unknown) {
 /** Arabic message for an error thrown by Firebase Auth, Firestore or Google sign-in. */
 export function authErrorMessage(error: unknown) {
   const code = error instanceof Error && 'code' in error && typeof error.code === 'string' ? error.code : '';
-  return AUTH_ERRORS[code] ?? 'حدث خطأ غير متوقع، حاول مرة أخرى';
+  if (!(code in AUTH_ERRORS)) {
+    // The generic message hides the cause; log it so it shows in the Metro terminal.
+    if (__DEV__) console.warn('Unhandled auth error:', code || '(no code)', error);
+    return 'حدث خطأ غير متوقع، حاول مرة أخرى';
+  }
+  return AUTH_ERRORS[code];
 }

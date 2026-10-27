@@ -30,12 +30,15 @@ export type ProfileFields = { name: string; gradeId: string; sectionId: string }
 
 export async function signUp({ email, password, ...fields }: ProfileFields & { email: string; password: string }) {
   const { user } = await createUserWithEmailAndPassword(auth, email.trim(), password);
+  // Sent first so a failing profile write below can't skip it. Not awaited: verification isn't
+  // required, so a failure here shouldn't fail the sign-up (the home banner can resend it).
+  sendEmailVerification(user).catch((e) => {
+    if (__DEV__) console.warn('sendEmailVerification failed', e);
+  });
   await updateProfile(user, { displayName: fields.name });
   // If this fails (e.g. the connection drops), the account exists without a profile and the
   // home screen sends the user to /complete-profile.
   await createProfile(fields);
-  // Not awaited: verification isn't required, so a failure here shouldn't fail the sign-up.
-  sendEmailVerification(user).catch(() => {});
 }
 
 /** Creates users/{uid} for the signed-in user. */
