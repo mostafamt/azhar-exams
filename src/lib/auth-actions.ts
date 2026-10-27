@@ -7,7 +7,7 @@ import {
   signOut as firebaseSignOut,
   updateProfile,
 } from 'firebase/auth';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
@@ -52,6 +52,18 @@ export async function createProfile({ name, gradeId, sectionId }: ProfileFields)
     gradeId,
     sectionId,
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/** Changes the signed-in user's name, grade and section; the rules let a student change nothing else. */
+export async function updateStudentProfile({ name, gradeId, sectionId }: ProfileFields) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not signed in');
+  await updateDoc(doc(db, 'users', user.uid), {
+    name: name.trim(),
+    gradeId,
+    sectionId,
     updatedAt: serverTimestamp(),
   });
 }

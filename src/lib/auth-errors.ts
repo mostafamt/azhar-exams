@@ -14,6 +14,7 @@ const AUTH_ERRORS: Record<string, string> = {
   'google/unavailable': 'تسجيل الدخول باستخدام Google غير متاح في هذه النسخة من التطبيق، استخدم البريد الإلكتروني',
   'google/play-services-not-available': 'خدمات Google Play غير متاحة أو تحتاج إلى تحديث على هذا الجهاز',
   unavailable: 'تعذّر الاتصال بالخادم، تحقق من اتصالك بالإنترنت',
+  'permission-denied': 'لا تملك صلاحية تنفيذ هذا الإجراء',
 };
 
 /** The user closed the sign-in popup themselves; not worth an error message. */

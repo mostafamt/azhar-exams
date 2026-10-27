@@ -93,6 +93,9 @@ function RootStack() {
       <Stack.Protected guard={!!user && !initializing && !profile}>
         <Stack.Screen name="complete-profile" options={{ title: 'أكمل بياناتك' }} />
       </Stack.Protected>
+      <Stack.Protected guard={!!user && !!profile}>
+        <Stack.Screen name="edit-profile" options={{ title: 'تعديل البيانات' }} />
+      </Stack.Protected>
     </Stack>
   );
 }

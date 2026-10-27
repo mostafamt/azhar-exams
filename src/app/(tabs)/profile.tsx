@@ -1,5 +1,5 @@
-import { Link } from 'expo-router';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Link, router } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthButton } from '@/components/auth-button';
@@ -47,6 +47,13 @@ export default function ProfileScreen() {
                 <Row label="الصف" value={grade.data?.name ?? '…'} />
                 <View style={styles.divider} />
                 <Row label="الشعبة" value={section?.name ?? '…'} />
+                <View style={styles.divider} />
+                <Pressable
+                  onPress={() => router.push('/edit-profile')}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [styles.edit, pressed && styles.pressed]}>
+                  <Text style={styles.editText}>تعديل الصف والشعبة</Text>
+                </Pressable>
               </View>
             ) : (
               !initializing && (
@@ -159,6 +166,19 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: Brand.border,
+  },
+  edit: {
+    minHeight: 52,
+    justifyContent: 'center',
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  editText: {
+    fontSize: 15,
+    lineHeight: 24,
+    fontFamily: Fonts.bold,
+    color: Brand.link,
   },
   link: {
     fontSize: 15,
