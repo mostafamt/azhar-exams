@@ -1,6 +1,5 @@
 import {
   collection,
-  deleteField,
   doc,
   getDocs,
   increment,
@@ -35,8 +34,8 @@ export type PresetId = keyof typeof PRESETS;
 
 /** Waiting matches older than this are ignored by search. */
 const SEARCH_WINDOW_MS = 2 * 60_000;
-/** Abandoned waiting matches are deleted by the TTL policy on `expireAt` after this. */
-const WAITING_TTL_MS = 60 * 60_000;
+/** Rooms waiting longer than this are treated as abandoned by «انضم بكود». */
+const ROOM_WINDOW_MS = 30 * 60_000;
 
 export type MatchAnswer = { choice: number; correct: boolean; ms: number };
 
@@ -112,6 +111,8 @@ export async function createMatch(me: Me, mode: Match['mode'], preset: PresetId)
   const { count, seconds } = PRESETS[preset];
   const questions = await fetchRandomQuestions(count);
   if (questions.length === 0) throw new Error('empty-bank');
+  // A search or room from before (e.g. the app was killed while waiting) would otherwise stay forever.
+  await deleteMyWaiting(me.uid).catch(() => {});
 
   const ref = doc(matches);
   await setDoc(ref, {
@@ -139,7 +140,6 @@ export async function createMatch(me: Me, mode: Match['mode'], preset: PresetId)
     finishedAt: null,
     winnerId: null,
     rematchId: null,
-    expireAt: Timestamp.fromMillis(Date.now() + WAITING_TTL_MS),
   });
   return ref.id;
 }
@@ -157,7 +157,6 @@ export function tryJoin(ref: DocumentReference, me: Me) {
       [`players.${me.uid}`]: newPlayer(me.name),
       startedAt: serverTimestamp(),
       questionStartedAt: serverTimestamp(),
-      expireAt: deleteField(),
     });
     return true;
   });
@@ -195,7 +194,9 @@ export async function joinByCode(me: Me, code: string) {
     query(matches, where('code', '==', code.trim().toUpperCase()), where('status', '==', 'waiting'), limit(1)),
   );
   const waiting = snapshot.docs[0];
-  if (!waiting || !(await tryJoin(waiting.ref, me))) return null;
+  const createdAt = waiting?.data().createdAt as Timestamp | null | undefined;
+  if (!waiting || !createdAt || createdAt.toMillis() < Date.now() - ROOM_WINDOW_MS) return null;
+  if (!(await tryJoin(waiting.ref, me))) return null;
   return waiting.id;
 }
 
@@ -206,6 +207,15 @@ export function cancelWaiting(matchId: string) {
     const snapshot = await tx.get(ref);
     if (snapshot.exists() && snapshot.data().status === 'waiting') tx.delete(ref);
   });
+}
+
+/**
+ * Deletes waiting matches I left behind. Firestore TTL needs billing, so abandoned searches are
+ * cleaned up here instead; search ignores them anyway (SEARCH_WINDOW_MS, ROOM_WINDOW_MS).
+ */
+async function deleteMyWaiting(uid: string) {
+  const snapshot = await getDocs(query(matches, where('hostId', '==', uid), where('status', '==', 'waiting')));
+  await Promise.all(snapshot.docs.map((waiting) => cancelWaiting(waiting.id)));
 }
 
 /** My answer to the current question. The rules reject it if it's late, repeated or not for `current`. */

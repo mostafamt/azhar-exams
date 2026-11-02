@@ -75,7 +75,7 @@ The score shown is the **number of correct answers** (`10 – 8` = `10 / 15` vs 
 | 12 | **Opponent's answer while the question is open** | Shows **«أجاب · تظهر إجابته بعد إجابتك»** until I answer (design `reveal: afterMe`). Then it shows their choice. Once the question ends (both answered or time's up), everything is revealed. |
 | 13 | **Leaving mid-match** (✕, Android back, swipe) | Confirm with the custom dark modal («مغادرة المباراة؟ ستُحتسب خسارة.»), as in quick-test. `Alert.alert` does nothing on web. Leaving is **a single write** that marks me `left` and finishes the match with the opponent as the winner. |
 | 14 | **Opponent disappears** (app killed, no network) | My client keeps moving the match forward when each question times out, and their missing answers count as wrong. The match ends normally after at most `count × (seconds + 2.5)` seconds. |
-| 15 | **Nobody to play** | After **60 s** of searching show «لا يوجد منافسون الآن» with «استمر في البحث» / «تحدَّ صديقاً». Waiting matches older than 2 min are ignored by search and removed by a TTL policy. |
+| 15 | **Nobody to play** | After **60 s** of searching show «لا يوجد منافسون الآن» with «استمر في البحث» / «تحدَّ صديقاً». Waiting matches older than 2 min are ignored by search, and room codes older than 30 min by «انضم بكود». There is **no TTL** (it needs billing): the app deletes your waiting match when you cancel or leave, and `createMatch` first deletes any you left behind, for example when the app was killed mid-search ([§3.2](#32-indexes-and-cleanup)). |
 
 ---
 
@@ -113,7 +113,6 @@ matches/{matchId}
   finishedAt: Timestamp | null,
   winnerId: 'uidA' | null,        // null + finished = draw
   rematchId: string | null,       // §6.6
-  expireAt: Timestamp | null,     // TTL: only set while waiting
 
   // ── per player (each player writes only their own key) ─
   players: {
@@ -155,7 +154,7 @@ Why this shape:
 | **rematch link** | a player | `finished`, `rematchId` still `null` |
 | **delete** | the host | Only while `waiting` |
 
-### 3.2 Indexes and TTL
+### 3.2 Indexes and cleanup
 
 Add `firestore.indexes.json` to the dashboard and reference it in `firebase.json` (`"indexes": "firestore.indexes.json"`):
 
@@ -186,7 +185,13 @@ Add `firestore.indexes.json` to the dashboard and reference it in `firebase.json
 
 The room-code lookup (`code ==`, `status ==`) uses only equality filters, so the automatic single-field indexes cover it.
 
-**TTL policy** on `matches.expireAt` (Console → Firestore → TTL). A waiting match gets `expireAt = now + 1 h`, and joining clears it (`deleteField()`), so abandoned searches clean themselves up. Finished matches are kept for «آخر المباريات».
+**No TTL policy.** Firestore TTL requires billing (the Blaze plan), which isn't enabled, and so do scheduled Cloud Functions. Abandoned waiting matches are handled on the client instead:
+
+- «إلغاء البحث», closing the room sheet, or leaving the lobby deletes your waiting match (`cancelWaiting`).
+- If the app is killed while waiting, `createMatch` first deletes your own leftover waiting matches (`hostId == me`, `status == 'waiting'`) the next time you start a match.
+- Leftovers are never seen by others in the meantime: search only looks at the last 2 min, and «انضم بكود» rejects rooms older than 30 min.
+
+A leftover from someone who never comes back is a small, harmless document. If billing is enabled later, add a TTL policy on a new `expireAt` field (Phase 6). Finished matches are kept for «آخر المباريات».
 
 ---
 
@@ -324,7 +329,6 @@ Entry point: a «مباراة» quick action on Home next to «اختبار سر
 ```ts
 import {
   collection,
-  deleteField,
   doc,
   getDocs,
   increment,
@@ -447,7 +451,6 @@ export async function createMatch(me: Me, mode: Match['mode'], preset: PresetId)
     finishedAt: null,
     winnerId: null,
     rematchId: null,
-    expireAt: Timestamp.fromMillis(Date.now() + 60 * 60_000),
   });
   return ref.id;
 }
@@ -465,7 +468,6 @@ export function tryJoin(ref: DocumentReference, me: Me) {
       [`players.${me.uid}`]: newPlayer(me.name),
       startedAt: serverTimestamp(),
       questionStartedAt: serverTimestamp(),
-      expireAt: deleteField(),
     });
     return true;
   });
@@ -978,7 +980,7 @@ The work is split into **five phases**. Each one ends in something that runs, ca
 
 | Phase | Goal | Ships | Depends on |
 |---|---|---|---|
-| **1 · Backend & data layer** | Firestore can hold and protect a match | Rules + tests, indexes, TTL, `src/data/matches.ts` | — |
+| **1 · Backend & data layer** | Firestore can hold and protect a match | Rules + tests, indexes, `src/data/matches.ts` | — |
 | **2 · Room code** | Two friends end up in the same match | Lobby skeleton, room-code sheet, routes, Home entry, placeholder match screen | 1 |
 | **3 · Live match (lockstep)** | A full match can be played to the end | `use-match.ts`, live screen (7b), timer, reveal, advance, leave | 2 |
 | **4 · Result, rematch & history** | The match ends properly | Result screen (7c), review list, rematch, «آخر المباريات» | 3 |
@@ -1004,7 +1006,7 @@ Build:
      - a third user can't join
      - a forfeit can't name yourself as the winner
    - Add `firestore.indexes.json` (§3.2) and reference it in `firebase.json`.
-   - Deploy the rules and indexes, and turn on the TTL policy on `matches.expireAt` in the console.
+   - Deploy the rules and indexes. There is no TTL policy, because it needs billing; see §3.2.
 2. **App repo:** `src/data/matches.ts` (§6.2): types, `PRESETS`, `createMatch`, `tryJoin`, `joinByCode`, `cancelWaiting`, `submitAnswer`, `advance`, `leaveMatch`, `findWaiting`, `findOrCreate`. Nothing uses it yet.
 
 Reference: §3, §4.3, §5.2, §6.2.
@@ -1015,7 +1017,6 @@ Done when:
 
 - [ ] All rules tests pass against the emulator.
 - [ ] Rules and both indexes are deployed (the index build shows **Enabled** in the console).
-- [ ] The TTL policy on `expireAt` is active.
 - [ ] `matches.ts` typechecks.
 
 ### Phase 2 · Room code: two players in one match
@@ -1141,5 +1142,5 @@ That's under **~90 operations per 5-question match**, well inside the free tier 
 - **Bot practice**: an on-device opponent with a random delay and accuracy, reusing the live screen through a fake `useMatch` source.
 - **Deep links** for room codes, and push notifications for «صديقك تحدّاك».
 - **Presence** (`onDisconnect` needs Realtime Database, not Firestore) to show «انقطع اتصال المنافس» instead of only timing out.
-- A scheduled function that closes matches abandoned by both players.
+- If billing is enabled: a TTL policy for abandoned waiting matches, and a scheduled function that closes matches abandoned by both players.
 - «خيارات» and «تفاعل» (reactions/emojis) from the 7b bottom bar.
