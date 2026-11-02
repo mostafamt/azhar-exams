@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>نتيجة المباراة</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#A5B4FC}a:hover{color:#C7D2FE}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0F172A; color: #F8FAFC; font-family: 'Cairo', sans-serif; direction: rtl; display: flex; flex-direction: column; padding: 20px 20px 24px; gap: 18px; overflow: hidden">
+
+  <div style="display: flex; align-items: center; justify-content: space-between">
+    <a href="Home.dc.html" aria-label="إغلاق" style="width: 44px; height: 44px; border-radius: 12px; background: #1E293B; border: 1px solid #334155; color: #F8FAFC; display: flex; align-items: center; justify-content: center; box-sizing: border-box"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></a>
+    <div style="font-size: 14px; color: #94A3B8">رياضيات · 5 دقائق · مصنّفة</div>
+  </div>
+
+  <div style="background: #1E293B; border: 1px solid #334155; border-radius: 24px; padding: 22px 18px; display: flex; flex-direction: column; align-items: center; gap: 18px">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px">
+      <div style="color: {{heroColor}}"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"></path><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"></path></svg></div>
+      <div style="font-size: 30px; font-weight: 800; color: {{heroColor}}">{{heroTitle}}</div>
+      <div style="font-size: 14px; color: #94A3B8">{{heroSub}}</div>
+    </div>
+
+    <div style="width: 100%; display: flex; align-items: center; justify-content: space-between">
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <div style="width: 64px; height: 64px; border-radius: 18px; background: #312E81; border: 3px solid {{meRing}}; color: #C7D2FE; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 24px; box-sizing: border-box">أ</div>
+        <div style="font-size: 14px; font-weight: 700">أنت</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; font-size: 40px; font-weight: 800; line-height: 1" aria-label="{{scoreLabel}}">
+        <span style="color: #A5B4FC">{{meScore}}</span><span style="color: #475569; font-size: 28px">–</span><span style="color: #FBBF24">{{oppScore}}</span>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px">
+        <div style="width: 64px; height: 64px; border-radius: 18px; background: #78350F; border: 3px solid {{oppRing}}; color: #FDE68A; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 24px; box-sizing: border-box">ي</div>
+        <div style="font-size: 14px; font-weight: 700">يوسف خالد</div>
+      </div>
+    </div>
+
+    <div style="width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 14px; background: {{ratingBg}}; color: {{ratingFg}}; font-size: 15px; font-weight: 800">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"></path></svg>
+        <span dir="ltr">{{rating}}</span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 14px; background: rgba(245,158,11,0.12); color: #FBBF24; font-size: 15px; font-weight: 800">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"></path></svg>
+        <span dir="ltr">{{xp}}</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #1E293B; border: 1px solid #334155; border-radius: 18px; overflow: hidden">
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 72px 72px; padding: 10px 16px; font-size: 12px; color: #94A3B8; font-weight: 700; border-bottom: 1px solid #334155">
+      <span></span><span style="text-align: center">أنت</span><span style="text-align: center">المنافس</span>
+    </div>
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 72px 72px; padding: 11px 16px; font-size: 14px; border-bottom: 1px solid #263244">
+        <span style="color: #94A3B8">{{r.label}}</span>
+        <span style="text-align: center; font-weight: 800" dir="ltr">{{r.me}}</span>
+        <span style="text-align: center; font-weight: 700; color: #CBD5E1" dir="ltr">{{r.opp}}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="flex: 1"></div>
+
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+      <a href="Match.dc.html" style="height: 56px; border-radius: 16px; background: #4F46E5; color: #FFFFFF; font-size: 16px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; box-shadow: 0 4px 0 #3730A3"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"></path></svg>إعادة التحدّي</a>
+      <a href="MatchLobby.dc.html" style="height: 56px; border-radius: 16px; border: 1.5px solid #334155; background: #1E293B; color: #F8FAFC; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">مباراة جديدة</a>
+    </div>
+    <a href="#" style="height: 48px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 15px; font-weight: 700; text-decoration: none">مراجعة الأسئلة والحلول</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"outcome":{"editor":"enum","options":["win","loss","draw"],"default":"win"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const o = this.props.outcome ?? 'win';
+    const d = {
+      win: { t: 'فوز!', sub: 'تفوّقت على يوسف بفارق سؤالين', c: '#F59E0B', me: 10, opp: 8, r: '+12  →  1,252', rbg: 'rgba(16,185,129,0.14)', rfg: '#34D399', xp: '+60 XP' },
+      loss: { t: 'خسارة', sub: 'قريبة جداً — جرّب مباراة ثأر', c: '#94A3B8', me: 7, opp: 9, r: '−9  →  1,231', rbg: 'rgba(239,68,68,0.12)', rfg: '#F87171', xp: '+20 XP' },
+      draw: { t: 'تعادل', sub: 'نفس عدد الإجابات الصحيحة', c: '#A5B4FC', me: 9, opp: 9, r: '±0  →  1,240', rbg: 'rgba(148,163,184,0.14)', rfg: '#CBD5E1', xp: '+35 XP' }
+    }[o];
+    return {
+      heroTitle: d.t, heroSub: d.sub, heroColor: d.c,
+      meScore: d.me, oppScore: d.opp,
+      scoreLabel: 'النتيجة: أنت ' + d.me + '، المنافس ' + d.opp,
+      meRing: o === 'win' ? '#F59E0B' : '#6366F1',
+      oppRing: o === 'loss' ? '#F59E0B' : '#334155',
+      rating: d.r, ratingBg: d.rbg, ratingFg: d.rfg, xp: d.xp,
+      rows: [
+        { label: 'إجابات صحيحة', me: d.me + ' / 15', opp: d.opp + ' / 15' },
+        { label: 'متوسط زمن الإجابة', me: '14s', opp: '17s' },
+        { label: 'أطول سلسلة صحيحة', me: '5', opp: '3' },
+        { label: 'الوقت المتبقي', me: '0:42', opp: '0:18' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
