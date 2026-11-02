@@ -8,7 +8,7 @@ Plan for **real-time 1v1 quiz matches**. Two students get the **same random ques
 | **7b · Live Match**: the shared question, its timer, the opponent's answer | `design/7b · Live Match-html.zip` → `Match.dc.html` | `src/app/match/[id].tsx` (phase `playing`) |
 | **7c · Match Result**: win / loss / draw, stats, rematch | [`design/7c · Match Result-html/MatchResult.dc.html`](<design/7c · Match Result-html/MatchResult.dc.html>) | `src/app/match/[id].tsx` (phase `finished`) |
 
-Status: **plan, not implemented** (2026-11-03). Revised the same day so that both players **move through the questions together (lockstep)**. The first draft had each player on their own clock.
+Status: **Phase 1 implemented** (2026-11-03): rules, rules tests, indexes and `src/data/matches.ts`. Phases 2–5 are not started. Revised the same day so that both players **move through the questions together (lockstep)**. The first draft had each player on their own clock.
 
 Implementation is split into **five phases** that can each be built, tested and committed on their own. See [§8](#8-implementation-phases):
 
@@ -71,7 +71,7 @@ The score shown is the **number of correct answers** (`10 – 8` = `10 / 15` vs 
 | 8 | **How to find an opponent** | Two ways: **random matchmaking** («ابدأ المباراة») and a **room code** («تحدَّ صديقاً»). No separate queue collection: **a `waiting` match document is the queue entry** ([§4.1](#41-random-matchmaking)). |
 | 9 | **«تدرّب ضد الروبوت»** | **Phase 6.** It can run fully on the device with no Firestore. Hidden for now, or shown greyed with «قريباً». |
 | 10 | **Who can play** | **Signed-in students only** (`user && profile`). A match needs a `uid` and a name. Guests see the Home entry, and tapping it offers sign-in. |
-| 11 | **Cheating** | The bank is public (`allow read: if true`), so `correctIndex` is public anyway. For the MVP **each client grades itself**. The rules check that a player writes only **their own** answer, only for the **current** question, only **once** and only **in time**. Good enough for friendly matches. Ranked matches need server grading (Phase 6, [§9](#9-phase-6-later-after-the-mvp)). |
+| 11 | **Cheating** | The bank is public (`allow read: if true`), so `correctIndex` is public anyway. For the MVP **each client grades itself**. The rules check that a player writes only **their own** answer, only for the **current** question, only **once** and only **in time**. They also check that the grade matches the question's `correctIndex` and that the score rises by exactly that grade. Good enough for friendly matches. Ranked matches need server grading (Phase 6, [§9](#9-phase-6-later-after-the-mvp)). |
 | 12 | **Opponent's answer while the question is open** | Shows **«أجاب · تظهر إجابته بعد إجابتك»** until I answer (design `reveal: afterMe`). Then it shows their choice. Once the question ends (both answered or time's up), everything is revealed. |
 | 13 | **Leaving mid-match** (✕, Android back, swipe) | Confirm with the custom dark modal («مغادرة المباراة؟ ستُحتسب خسارة.»), as in quick-test. `Alert.alert` does nothing on web. Leaving is **a single write** that marks me `left` and finishes the match with the opponent as the winner. |
 | 14 | **Opponent disappears** (app killed, no network) | My client keeps moving the match forward when each question times out, and their missing answers count as wrong. The match ends normally after at most `count × (seconds + 2.5)` seconds. |
@@ -141,126 +141,19 @@ Why this shape:
 
 ### 3.1 Security rules (in `../azhar-exams-dashboard/firestore.rules`)
 
-```
-// 1v1 matches in lockstep (docs/match-plan.md in the app repo). Clients grade themselves; matches are unranked.
-function isPlayer(d) {
-  return signedIn() && request.auth.uid in d.playerIds;
-}
+**Implemented in Phase 1.** The source of truth is the `matches` block in the dashboard's `firestore.rules`, tested by `tests/matches.test.js` (`npm run test:rules`). In summary:
 
-function changedKeys() {
-  return request.resource.data.diff(resource.data).affectedKeys();
-}
-
-function onlyMyPlayerChanged() {
-  return request.resource.data.players.diff(resource.data.players).affectedKeys()
-    .hasOnly([request.auth.uid]);
-}
-
-function hasAnswered(d, uid) {
-  return string(d.current) in d.players[uid].answers;
-}
-
-// The current question is over: both answered, or its time is up.
-function questionOver(d) {
-  return (hasAnswered(d, d.playerIds[0]) && hasAnswered(d, d.playerIds[1]))
-    || request.time > d.questionStartedAt + duration.value(d.secondsPerQuestion, 's');
-}
-
-// I add exactly one answer, for the current question, once, in time (+2 s for latency).
-function answersCurrentQuestion() {
-  let d = resource.data;
-  let before = d.players[request.auth.uid];
-  let after = request.resource.data.players[request.auth.uid];
-  return after.diff(before).affectedKeys().hasOnly(['answers', 'score'])
-    && after.answers.diff(before.answers).affectedKeys().hasOnly([string(d.current)])
-    && !hasAnswered(d, request.auth.uid)
-    && request.time <= d.questionStartedAt + duration.value(d.secondsPerQuestion + 2, 's');
-}
-
-match /matches/{matchId} {
-  // Waiting matches are visible to everyone signed in, which matchmaking and room codes need.
-  allow read: if signedIn() && (resource.data.status == 'waiting' || isPlayer(resource.data));
-
-  allow create: if signedIn()
-    && request.resource.data.status == 'waiting'
-    && request.resource.data.current == 0
-    && request.resource.data.hostId == request.auth.uid
-    && request.resource.data.playerIds == [request.auth.uid]
-    && request.resource.data.players.keys().hasOnly([request.auth.uid])
-    && request.resource.data.questions is list
-    && request.resource.data.questions.size() >= 1
-    && request.resource.data.questions.size() <= 25
-    && request.resource.data.secondsPerQuestion is int
-    && request.resource.data.secondsPerQuestion >= 5
-    && request.resource.data.secondsPerQuestion <= 60;
-
-  // Join: a second player adds only themselves and starts question 0.
-  allow update: if signedIn()
-    && resource.data.status == 'waiting'
-    && resource.data.playerIds.size() == 1
-    && !(request.auth.uid in resource.data.playerIds)
-    && changedKeys().hasOnly(['status', 'playerIds', 'players', 'startedAt', 'questionStartedAt', 'expireAt'])
-    && request.resource.data.status == 'playing'
-    && request.resource.data.playerIds == resource.data.playerIds.concat([request.auth.uid])
-    && onlyMyPlayerChanged()
-    && request.resource.data.startedAt == request.time
-    && request.resource.data.questionStartedAt == request.time;
-
-  // Answer the current question.
-  allow update: if isPlayer(resource.data)
-    && resource.data.status == 'playing'
-    && changedKeys().hasOnly(['players'])
-    && onlyMyPlayerChanged()
-    && answersCurrentQuestion();
-
-  // Advance both players to the next question.
-  allow update: if isPlayer(resource.data)
-    && resource.data.status == 'playing'
-    && changedKeys().hasOnly(['current', 'questionStartedAt'])
-    && request.resource.data.current == resource.data.current + 1
-    && request.resource.data.current < resource.data.questions.size()
-    && request.resource.data.questionStartedAt == request.time
-    && questionOver(resource.data);
-
-  // Finish after the last question.
-  allow update: if isPlayer(resource.data)
-    && resource.data.status == 'playing'
-    && changedKeys().hasOnly(['status', 'finishedAt', 'winnerId'])
-    && request.resource.data.status == 'finished'
-    && resource.data.current == resource.data.questions.size() - 1
-    && questionOver(resource.data);
-
-  // Forfeit: I leave, and the match finishes with my opponent as the winner.
-  allow update: if isPlayer(resource.data)
-    && resource.data.status == 'playing'
-    && changedKeys().hasOnly(['players', 'status', 'finishedAt', 'winnerId'])
-    && onlyMyPlayerChanged()
-    && request.resource.data.players[request.auth.uid].diff(resource.data.players[request.auth.uid])
-      .affectedKeys().hasOnly(['left'])
-    && request.resource.data.players[request.auth.uid].left == true
-    && request.resource.data.status == 'finished'
-    && request.resource.data.winnerId in resource.data.playerIds
-    && request.resource.data.winnerId != request.auth.uid;
-
-  // Rematch link, set once.
-  allow update: if isPlayer(resource.data)
-    && resource.data.status == 'finished'
-    && resource.data.rematchId == null
-    && changedKeys().hasOnly(['rematchId']);
-
-  // The host cancels a search.
-  allow delete: if signedIn()
-    && resource.data.hostId == request.auth.uid
-    && resource.data.status == 'waiting';
-}
-```
-
-Add rules tests next to the existing ones in the dashboard's `tests/`. They should check that:
-
-- a player can't touch the other player's entry
-- a player can't answer a question other than `current`, can't answer twice, and can't answer after the deadline
-- advancing is refused while the question is still open, and is allowed once both have answered or after the deadline
-- a third user can't join a `playing` match
+| Rule | Who | Allowed when |
+|---|---|---|
+| **read** | signed in | The match is `waiting` (matchmaking, room codes) or you're one of its players |
+| **create** | signed in | You're the host and the only player, with a fresh player entry (`score 0`, no answers). It's `waiting` with `current 0`, has 1–25 questions and 5–60 s per question, and `createdAt` is server time. Only the known fields are allowed |
+| **join** | a second user | `waiting` with one player. You add only yourself, with a fresh entry. `status → playing`, and `startedAt` = `questionStartedAt` = server time |
+| **answer** | a player | `playing`. Only your own `answers.{current}` and `score` change. You haven't answered yet, it's within `seconds + 2` of `questionStartedAt`, `choice` is 0–3 and `ms` is within the limit. **`correct` must equal `choice == questions[current].correctIndex`, and `score` must rise by exactly that**, so grades and scores can't be faked |
+| **advance** | a player | `current + 1` (not past the last question), `questionStartedAt` = server time. The question is over: both answered, or past `seconds` |
+| **finish** | a player | On the last question, once it's over. `winnerId` is a player or `null` |
+| **forfeit** | a player | Only your own `left → true`. `status → finished`, and `winnerId` = the opponent |
+| **rematch link** | a player | `finished`, `rematchId` still `null` |
+| **delete** | the host | Only while `waiting` |
 
 ### 3.2 Indexes and TTL
 
@@ -425,6 +318,8 @@ In `src/app/_layout.tsx`, inside the signed-in guard:
 Entry point: a «مباراة» quick action on Home next to «اختبار سريع» (`router.push('/match')`). For guests it opens sign-in.
 
 ### 6.2 `src/data/matches.ts`
+
+**Implemented in Phase 1.** The file is the source of truth. It also has `setRematch` (§6.6) and exports `pickWinner`. The listing below is the design it was built from.
 
 ```ts
 import {
@@ -1094,7 +989,7 @@ The room code comes **before** random matchmaking on purpose. It is the simplest
 
 **Every phase ends with** `npx expo lint`, `npx tsc --noEmit` and a commit. The phase's "Done when" checks are run on **two clients**: an emulator or dev build plus the web build (`npx expo start --web`), signed in as two different students.
 
-### Phase 1 · Backend & data layer
+### Phase 1 · Backend & data layer ✅ (code done; deploy pending)
 
 **Goal:** the database side is finished and tested before any screen exists.
 
