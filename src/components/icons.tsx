@@ -198,6 +198,74 @@ export function BackIcon(props: IconProps) {
   );
 }
 
+/** «العب مباراة» on Home and «ابدأ المباراة» in the match lobby (2 · Home, 7a · Match Lobby). */
+export function SwordsIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2" />
+    </StrokeIcon>
+  );
+}
+
+/** «تحدَّ صديقاً» (7a · Match Lobby). */
+export function UsersIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Circle cx={9} cy={8} r={3.5} />
+      <Path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5" />
+    </StrokeIcon>
+  );
+}
+
+/** Not in the mockups; drawn in the same style for sharing a room code. */
+export function ShareIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Circle cx={18} cy={5} r={3} />
+      <Circle cx={6} cy={12} r={3} />
+      <Circle cx={18} cy={19} r={3} />
+      <Path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" />
+    </StrokeIcon>
+  );
+}
+
+/** The rating chip on the match result (7c · Match Result). */
+export function TrendIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M3 17l6-6 4 4 8-8M15 7h6v6" />
+    </StrokeIcon>
+  );
+}
+
+/** «تفاعل» in the live match's bottom bar (7b · Live Match). */
+export function ChatIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M5 4h14v11H9l-4 4z" />
+    </StrokeIcon>
+  );
+}
+
+/** «تدرّب ضد الروبوت» (7a · Match Lobby). */
+export function BotIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Rect x={4} y={8} width={16} height={12} rx={3} />
+      <Path d="M12 8V4M9 14h.01M15 14h.01" />
+    </StrokeIcon>
+  );
+}
+
+/** «إعادة التحدّي» (7c · Match Result). */
+export function RefreshIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" />
+    </StrokeIcon>
+  );
+}
+
 export function CheckIcon(props: IconProps) {
   return (
     <StrokeIcon strokeWidth={3} {...props}>

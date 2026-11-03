@@ -7,7 +7,7 @@ import { AnnouncementCard } from '@/components/home/announcement-card';
 import { ExamCard } from '@/components/home/exam-card';
 import { HomeHeader } from '@/components/home/home-header';
 import { QuickAction } from '@/components/home/quick-action';
-import { ChartIcon, TargetIcon, TrophyIcon } from '@/components/icons';
+import { ChartIcon, SwordsIcon, TargetIcon, TrophyIcon } from '@/components/icons';
 import { LOAD_ERROR_MESSAGE } from '@/components/empty-state';
 import { VerifyEmailBanner } from '@/components/verify-email-banner';
 import { Brand } from '@/constants/colors';
@@ -32,6 +32,13 @@ export default function HomeScreen() {
     } else {
       router.navigate('/exams');
     }
+  }
+
+  // Matches need an account with a profile (name); guests sign in first.
+  function playMatch() {
+    if (!user) router.push('/sign-in');
+    else if (!profile) router.push('/complete-profile');
+    else router.push('/match');
   }
 
   let examList;
@@ -67,55 +74,73 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={[styles.content, { paddingTop: insets.top + 24 }]}>
-      <View style={styles.column}>
-        <HomeHeader name={profile?.name ?? user?.displayName ?? null} />
+    <View style={styles.screen}>
+      <ScrollView style={styles.fill} contentContainerStyle={[styles.content, { paddingTop: insets.top + 24 }]}>
+        <View style={styles.column}>
+          <HomeHeader name={profile?.name ?? user?.displayName ?? null} />
 
-        {user && (
-          <>
-            <VerifyEmailBanner />
-            {!initializing && !profile && (
-              <Link href="/complete-profile" style={styles.link}>
-                أكمل بياناتك لاختيار صفك وشعبتك
-              </Link>
-            )}
-          </>
-        )}
-
-        <Carousel
-          items={ANNOUNCEMENTS}
-          keyOf={(item) => item.id}
-          labelOf={(item) => `${item.badge}. ${item.title}. ${item.body}`}
-          renderItem={(item) => <AnnouncementCard announcement={item} />}
-          style={styles.carousel}
-        />
-
-        <View style={styles.actions}>
-          <QuickAction
-            label="اختبار سريع"
-            Icon={TargetIcon}
-            color={Brand.link}
-            background={Brand.primarySoft}
-            onPress={() => router.push('/quick-test')}
-          />
-          <QuickAction label="الدوري الحالي" Icon={TrophyIcon} color={Brand.accentBright} background={Brand.accentSoft} />
-          <QuickAction label="سجل النتائج" Icon={ChartIcon} color={Brand.success} background={Brand.successSoft} />
-        </View>
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle} accessibilityRole="header">
-            الاختبارات المتاحة
-          </Text>
-          {gradeId && (
-            <Pressable onPress={openMyExams} accessibilityRole="link" hitSlop={12}>
-              <Text style={styles.link}>عرض الكل</Text>
-            </Pressable>
+          {user && (
+            <>
+              <VerifyEmailBanner />
+              {!initializing && !profile && (
+                <Link href="/complete-profile" style={styles.link}>
+                  أكمل بياناتك لاختيار صفك وشعبتك
+                </Link>
+              )}
+            </>
           )}
-        </View>
 
-        <View style={styles.list}>{examList}</View>
+          <Carousel
+            items={ANNOUNCEMENTS}
+            keyOf={(item) => item.id}
+            labelOf={(item) => `${item.badge}. ${item.title}. ${item.body}`}
+            renderItem={(item) => <AnnouncementCard announcement={item} />}
+            style={styles.carousel}
+          />
+
+          <View style={styles.actions}>
+            <QuickAction
+              label="اختبار سريع"
+              Icon={TargetIcon}
+              color={Brand.link}
+              background={Brand.primarySoft}
+              onPress={() => router.push('/quick-test')}
+            />
+            <QuickAction
+              label="الدوري الحالي"
+              Icon={TrophyIcon}
+              color={Brand.accentBright}
+              background={Brand.accentSoft}
+            />
+            <QuickAction label="سجل النتائج" Icon={ChartIcon} color={Brand.success} background={Brand.successSoft} />
+          </View>
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle} accessibilityRole="header">
+              الاختبارات المتاحة
+            </Text>
+            {gradeId && (
+              <Pressable onPress={openMyExams} accessibilityRole="link" hitSlop={12}>
+                <Text style={styles.link}>عرض الكل</Text>
+              </Pressable>
+            )}
+          </View>
+
+          <View style={styles.list}>{examList}</View>
+        </View>
+      </ScrollView>
+
+      {/* Pinned above the tab bar (2 · Home-html(1)). */}
+      <View style={styles.playBar}>
+        <Pressable
+          onPress={playMatch}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.column, styles.playButton, pressed && styles.pressed]}>
+          <SwordsIcon color={Brand.white} size={24} />
+          <Text style={styles.playText}>العب مباراة</Text>
+        </Pressable>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -123,6 +148,34 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: Brand.background,
+  },
+  fill: {
+    flex: 1,
+  },
+  playBar: {
+    paddingTop: 10,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
+    backgroundColor: Brand.background,
+    borderTopWidth: 1,
+    borderTopColor: Brand.surface,
+  },
+  playButton: {
+    height: 58,
+    borderRadius: 16,
+    backgroundColor: Brand.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 5,
+    boxShadow: '0 5px 0 #3730A3',
+  },
+  playText: {
+    fontSize: 20,
+    lineHeight: 32,
+    fontFamily: Fonts.extraBold,
+    color: Brand.white,
   },
   content: {
     paddingHorizontal: 20,

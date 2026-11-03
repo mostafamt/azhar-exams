@@ -8,7 +8,7 @@ Plan for **real-time 1v1 quiz matches**. Two students get the **same random ques
 | **7b · Live Match**: the shared question, its timer, the opponent's answer | `design/7b · Live Match-html.zip` → `Match.dc.html` | `src/app/match/[id].tsx` (phase `playing`) |
 | **7c · Match Result**: win / loss / draw, stats, rematch | [`design/7c · Match Result-html/MatchResult.dc.html`](<design/7c · Match Result-html/MatchResult.dc.html>) | `src/app/match/[id].tsx` (phase `finished`) |
 
-Status: **Phase 1 implemented** (2026-11-03): rules, rules tests, indexes and `src/data/matches.ts`. Phases 2–5 are not started. Revised the same day so that both players **move through the questions together (lockstep)**. The first draft had each player on their own clock.
+Status: **Phases 1–6 implemented** (2026-11-03); Phase 6 in its simple, Spark-plan version (§9). Phase 1: rules, rules tests, indexes and `src/data/matches.ts`. Phase 2: room codes and the lobby skeleton. Phase 3: the live match in lockstep. Phase 4: the result screen, rematch and «آخر المباريات». Phase 5: random matchmaking. Phase 6: ranked play, presence, subjects, the bot, reactions and room links. Revised the same day so that both players **move through the questions together (lockstep)**. The first draft had each player on their own clock.
 
 Implementation is split into **five phases** that can each be built, tested and committed on their own. See [§8](#8-implementation-phases):
 
@@ -296,17 +296,22 @@ src/
     index.tsx                 Lobby: idle → searching / room code (7a)
     [id].tsx                  Live match → result (7b, 7c)
   data/matches.ts             Types, PRESETS, toMatch, create/join/answer/advance/leave
+  hooks/use-room.ts           Room code: create + wait, join, cancel
   hooks/use-matchmaking.ts    Search, race fix, cancel
   hooks/use-match.ts          onSnapshot, question timer, phases, actions
+  hooks/use-recent-matches.ts «آخر المباريات», live
   components/match/
     player-row.tsx            Avatar, name, status line, clock box (both rows in 7b)
     match-clock.tsx           104×46 clock box, red in the last 5 s
     question-strip.tsx        The 38×44 tiles with me/opponent marks
     match-choice.tsx          72-high choice with letter tile and me/opponent badges
     score-pill.tsx            4 – 3
+    mark.tsx                  ✓ / ✗ / – marks for the strip, badges and statuses
     search-state.tsx          You vs ؟, spinner, elapsed time (7a searching)
+    preset-card.tsx           One «مدة المباراة» card (7a)
     room-code-sheet.tsx       Create / join by code
     match-result.tsx          Hero, big score, stats table, actions (7c)
+    recent-match-row.tsx      One «آخر المباريات» row (7a)
 ```
 
 In `src/app/_layout.tsx`, inside the signed-in guard:
@@ -320,7 +325,7 @@ In `src/app/_layout.tsx`, inside the signed-in guard:
 </Stack.Protected>
 ```
 
-Entry point: a «مباراة» quick action on Home next to «اختبار سريع» (`router.push('/match')`). For guests it opens sign-in.
+Entry point: the pinned «العب مباراة» bar on Home (`router.push('/match')`). For guests it opens sign-in.
 
 ### 6.2 `src/data/matches.ts`
 
@@ -1019,20 +1024,20 @@ Done when:
 - [ ] Rules and both indexes are deployed (the index build shows **Enabled** in the console).
 - [ ] `matches.ts` typechecks.
 
-### Phase 2 · Room code: two players in one match
+### Phase 2 · Room code: two players in one match ✅ (code done; trying it needs the Phase 1 rules and indexes deployed)
 
 **Goal:** one student creates a room, a friend joins with the code, and both phones open the same match and see it update live.
 
 Build:
 
 1. **Routes** in `src/app/_layout.tsx`: `match/index` and `match/[id]` inside the signed-in guard (§6.1).
-2. **Home entry:** a «مباراة» quick action. Guests are offered sign-in.
+2. **Home entry:** the pinned **«العب مباراة»** bar above the tab bar, from the newer Home design (`design/2 · Home-html(1)`). Guests go to sign-in, and accounts without a profile go to «أكمل بياناتك».
 3. **Lobby skeleton** `src/app/match/index.tsx` (7a, idle state):
    - The header without the rating pill.
    - The three **preset cards** (§2 #5).
    - The **«تحدَّ صديقاً»** row.
    - «ابدأ المباراة», «البطولات» and «تدرّب ضد الروبوت» are hidden for now.
-4. **`components/match/room-code-sheet.tsx`** (§4.2):
+4. **`hooks/use-room.ts`** + **`components/match/room-code-sheet.tsx`** (§4.2):
    - «أنشئ غرفة» → `createMatch(me, 'code', preset)`, shows the code, «مشاركة» (`Share.share`), and «جارٍ انتظار صديقك…». It listens to the match with `onSnapshot`, and when it becomes `playing` it calls `router.replace('/match/[id]')`. On close it calls `cancelWaiting`.
    - «انضم بكود» → `joinByCode`, then navigate. On failure it shows «الكود غير صحيح أو الغرفة ممتلئة».
 5. **Placeholder `src/app/match/[id].tsx`:** listens to the match and shows the two names, `status`, and «السؤال {current + 1} من {total}». This is temporary; Phase 3 replaces it.
@@ -1048,7 +1053,7 @@ Done when:
 - [ ] A wrong code, or a room that is already full, shows the error and doesn't navigate.
 - [ ] A guest tapping «مباراة» is sent to sign in.
 
-### Phase 3 · Live match in lockstep
+### Phase 3 · Live match in lockstep ✅ (code done; needs the two-phone checks below)
 
 **Goal:** a full match is played from the first question to the last, with both phones always on the same question.
 
@@ -1064,6 +1069,15 @@ Build:
 3. **Leaving:** ✕, Android back and swipe go through `usePreventRemove` and `ConfirmModal`, then `leaveMatch` (forfeit).
 4. **Minimal end state:** when `status` is `finished`, show a simple card, «انتهت المباراة · 3 – 2 · فوز», with «العودة». Phase 4 replaces it with the real result screen.
 
+As built:
+
+- `components/match/mark.tsx` holds the ✓ / ✗ / – marks shared by the strip, the badges and the opponent's status.
+- The question strip shows only as many tiles as fit and keeps the current one in view. It doesn't scroll horizontally, which is unreliable in RTL.
+- Answers of up to 14 characters sit two per row in large type, as in the design. Longer answers get a full row each.
+- The design's «خيارات» and «تفاعل» buttons and the ratings are left out. The top bar reads «مباراة ودية · 5 أسئلة».
+- «الأسرع» appears only once the opponent's answer is known. There are no points: the score is the number of correct answers.
+- A forfeit takes the leaver wherever they were going: Home for ✕ and back. The end card also has «مباراة جديدة».
+
 Reference: §1.2, §5, §6.4, §6.5.
 
 Not in this phase: the 7c result screen, rematch, history, random matchmaking.
@@ -1074,12 +1088,12 @@ Done when:
 - [ ] One player answers and the other lets the timer run out. The question ends on time and the missing answer counts as wrong.
 - [ ] **Neither** player answers: the match still moves on.
 - [ ] The opponent's choice stays hidden («أجاب · تظهر إجابته بعد إجابتك») until I answer.
-- [ ] Leaving mid-match: the leaver returns to the lobby and the other phone shows the end card with a win.
+- [ ] Leaving mid-match: the leaver goes back (Home), and the other phone shows the end card with a win and «انسحب المنافس من المباراة».
 - [ ] Killing one app mid-match: the other phone keeps going on timeouts to the end.
 - [ ] Airplane mode for 5 s while answering: the late answer is rejected and rolled back, and the match continues.
 - [ ] After the last question, both phones show the same final score.
 
-### Phase 4 · Result, rematch & history
+### Phase 4 · Result, rematch & history ✅ (code done; needs the two-phone checks below)
 
 **Goal:** the match ends the way the design shows, and players can play again.
 
@@ -1095,13 +1109,22 @@ Build:
 
 Reference: §1.3, §6.6, §6.7, §7.
 
+As built:
+
+- `rematch()` in `matches.ts` joins the opponent's rematch if one is linked. Otherwise it opens a room with the same preset and links it. If both players tap at the same time, the one who loses the link deletes their own room and joins the other.
+- The player who asks goes straight to `/match/[newId]`, which shows «بانتظار منافسك…». Leaving that screen deletes the room. The other player sees «{name} يطلب إعادة التحدّي» and the button changes to «انضم».
+- A cancelled or taken rematch shows «لم يعد التحدّي متاحاً». The link can only be set once, so after that only «مباراة جديدة» works. «إعادة التحدّي» is hidden 30 minutes after the match ends.
+- The stats table replaces «الوقت المتبقي» with «الأسرع في» (§7).
+- «آخر المباريات» shows the last 3 matches live (`hooks/use-recent-matches.ts`). Tapping one opens its result screen. If the index isn't built yet, the section stays hidden.
+- «مباراة جديدة» uses `router.dismissTo('/match')`, so a result opened from the lobby doesn't stack a second lobby.
+
 Done when:
 
 - [ ] Win, loss, draw and «انسحب المنافس» all render with the right numbers on both phones.
 - [ ] Rematch: A taps «إعادة التحدّي», B sees the invite and joins, and both start a new match. If both tap at once, they still end up in **one** match.
 - [ ] The lobby lists the finished matches with the right score and badge.
 
-### Phase 5 · Random matchmaking
+### Phase 5 · Random matchmaking ✅ (code done; needs the two-phone checks below)
 
 **Goal:** «ابدأ المباراة» finds a stranger with the same preset.
 
@@ -1112,6 +1135,13 @@ Build:
 3. On `found`, call `router.replace('/match/[id]')`. The live match from Phase 3 is reused as is.
 
 Reference: §4.1, §6.3.
+
+As built (`hooks/use-matchmaking.ts`, `components/match/search-state.tsx`):
+
+- **The race fix is one transaction:** `joinOlder()` in `matches.ts`. It joins the older match **and** deletes mine only if mine is still waiting. Without this, someone could join mine at the moment I leave for the older match, and they would be stuck alone. The older match is found by the server time on my own match, which comes from my listener, not from an extra query.
+- **The search stops at 60 s:** my waiting match is deleted and the fallback shows. Other players stop seeing a waiting match after 2 min (`SEARCH_WINDOW_MS`), so a search that kept running would be invisible. «استمر في البحث» starts a fresh search, which is visible again. If someone joins at the last moment, `cancelWaiting` finds the match already playing and the lobby opens it instead of the fallback. `cancelWaiting` now returns `false` when that happens.
+- The fallback also offers «تحدَّ صديقاً» (opens the room sheet) and «رجوع».
+- A search that fails shows «تعذّر الاتصال…», or «لا توجد أسئلة بعد.» if the bank is empty, under «ابدأ المباراة».
 
 Done when:
 
@@ -1134,13 +1164,62 @@ That's under **~90 operations per 5-question match**, well inside the free tier 
 
 ---
 
-## 9. Phase 6: later, after the MVP
+## 9. Phase 6: after the MVP ✅ (simple version; code done, needs the two-phone checks below)
 
-- **Ranked matches and Elo rating** (`users/{uid}.rating`, `+12 → 1,252`), XP and **«البطولات»**. These need a **Cloud Function**: a callable `submitMatchAnswer` grades against a server-only copy of `correctIndex` (`matches/{id}/private/key`), writes scores, and settles the rating when the match finishes. The bank itself would also need to stop being world-readable, or ranked matches would draw from a hidden pool.
-- **Speed points** («+10 الأسرع / +5»): easy to add in lockstep, since both answers to each question carry `ms`. Grade them on the server once matches are ranked.
-- **Subjects** (`queueKey = subjectId:preset`), filtered by the student's grade and section.
-- **Bot practice**: an on-device opponent with a random delay and accuracy, reusing the live screen through a fake `useMatch` source.
-- **Deep links** for room codes, and push notifications for «صديقك تحدّاك».
-- **Presence** (`onDisconnect` needs Realtime Database, not Firestore) to show «انقطع اتصال المنافس» instead of only timing out.
-- If billing is enabled: a TTL policy for abandoned waiting matches, and a scheduled function that closes matches abandoned by both players.
-- «خيارات» and «تفاعل» (reactions/emojis) from the 7b bottom bar.
+Everything here runs on the Spark plan: no billing, no Cloud Functions, no Realtime Database. The clients are trusted where a server would normally be needed. That's fine for an educational app; the rules still bound each write.
+
+### 9.1 Ranked matches, rating and XP
+
+- **Random matches («ابدأ المباراة») are ranked**; room codes and rematches are friendly (`match.ranked`). Each player's rating at the start is copied into `players.{uid}.rating`.
+- **`ratings/{uid}`** = `{name, rating, xp, wins, losses, draws, lastMatchId, updatedAt}`, readable by any signed-in student for the leaderboard. Everyone starts at **1000**.
+- **Settling** (`src/data/ratings.ts` → `settleMatch`): one transaction that sets `players.{uid}.rated = true` on the match and writes my rating doc. The result screen settles when it opens; a player who forfeits settles right after leaving.
+  - **Elo**, K = 32: my current rating against the opponent's rating at the start.
+  - **XP**: win 60, draw 35, loss 20, 0 for leaving. Friendly matches give XP only.
+- **Rules**: only the owner writes, the rating moves by at most 40 and XP by at most 100, games go up by exactly one, and `lastMatchId` must be a finished match of mine that this same write marks `rated`. So each match counts **once**.
+- **UI**: the rating pill in the lobby header (7a), the rating after each name in a ranked match (7b), and the `+12 → 1,252` and `+60 XP` chips on the result (7c).
+- **«لوحة الصدارة»** (`src/app/match/leaderboard.tsx`): top 20 by rating, with wins, losses and draws. It replaces «البطولات» for now.
+
+### 9.2 Presence on Firestore
+
+Firestore has no `onDisconnect`, so presence is a **heartbeat**:
+
+- While the match is playing, each phone writes `players.{uid}.seenAt = serverTimestamp()` every **10 s**.
+- The other phone notes the **local** time whenever that value changes, so phone clocks never need to agree.
+  - **25 s** without a change: the opponent row shows «انقطع اتصال المنافس…».
+  - **50 s**: «إنهاء المباراة بفوزك» appears. The rules accept that write (`winnerId = me`) only if the opponent's `seenAt` (or `startedAt` if they never sent one) is more than **45 s** old in server time.
+- Cost: about 6 writes per player per minute of play, and those changes also reach both listeners.
+
+### 9.3 Subjects
+
+- «المادة» chips: «متنوع» plus the subjects of my grade and section (`useSubjects`).
+- Questions are picked with `where('source.subjectId', '==', id)`; «متنوع» uses the whole bank.
+- `queueKey = {subjectId | mix}:{preset}`, so random matches only pair students on the same subject. `subjectId` and `subjectName` are stored on the match and carried into rematches.
+
+### 9.4 Practice against the bot
+
+- `/match/bot` runs a match that lives only on this phone (`src/data/bot-match.ts`). The live screen was moved to `components/match/match-screen.tsx` and reads a **`MatchSource`** (`src/data/match-source.ts`): Firestore or the bot.
+- The bot answers each question after 25–90% of the time and is right 60% of the time. No rating, no history, nothing written to Firestore. «إعادة التحدّي» starts another practice match.
+
+### 9.5 Small things
+
+- **Speed tiebreak** instead of speed points: equal scores go to whoever spent less total time on their correct answers; only a full tie is a draw. Points would need the rules to grade timing against the opponent, which they can't.
+- **«تفاعل»**: six emoji (`REACTIONS`), shown next to the sender's name on both phones for 3 s; the rules allow one every 2 s.
+- **Room link**: «مشاركة الكود» adds `azharexams://join/CODE` (`Linking.createURL`). `src/app/join/[code].tsx` joins and opens the match; a signed-out student is offered sign-in.
+
+### 9.6 Checks
+
+- [ ] Rules tests pass (51).
+- [ ] A ranked match moves both ratings in opposite directions; reopening it from «آخر المباريات» doesn't count it again.
+- [ ] A forfeit costs the leaver rating even though they never see the result.
+- [ ] Turning one phone's network off: after ~25 s the other shows «انقطع اتصال المنافس…», and after ~50 s «إنهاء المباراة بفوزك» works.
+- [ ] A subject match only pairs players on that subject, and every question belongs to it.
+- [ ] A full bot match plays to the result; the bot sometimes answers wrong.
+- [ ] Reactions show on both phones; spamming is limited to one every 2 s.
+- [ ] Opening the shared link on a second phone joins the room.
+
+### 9.7 Still later
+
+- **Push notifications** («صديقك تحدّاك»): sending needs a server (a Cloud Function, so billing) or a third-party push service.
+- **TTL and scheduled cleanup** of abandoned matches: need billing. Abandoned waiting matches are already ignored and cleaned client-side (§3.2).
+- **Hidden answer key and server grading** for real competitive play.
+- **Leagues/seasons** («البطولات») and «خيارات» in the live match.

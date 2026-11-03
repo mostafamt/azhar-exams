@@ -1,4 +1,4 @@
-import { collection, getDocs, type QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs, query, where, type QueryDocumentSnapshot } from 'firebase/firestore';
 
 import { db } from '@/lib/firebase';
 import { shuffle } from '@/utils/random';
@@ -55,10 +55,13 @@ function toQuestion(snapshot: QueryDocumentSnapshot): Question | null {
 /**
  * `count` random, unique questions, or all of them if the bank is smaller. Reads the whole bank,
  * which is fine for a few hundred questions (docs/quick-test-plan.md §4.2 for larger banks).
- * A one-off read, so an edit in the dashboard can't change a question mid-test.
+ * A one-off read, so an edit in the dashboard can't change a question mid-test. `subjectId`
+ * limits it to one subject.
  */
-export async function fetchRandomQuestions(count: number): Promise<Question[]> {
-  const snapshot = await getDocs(collection(db, MCQ_ITEMS_PATH));
+export async function fetchRandomQuestions(count: number, subjectId?: string | null): Promise<Question[]> {
+  const items = collection(db, MCQ_ITEMS_PATH);
+  // A subject's questions only (1v1 matches); its source points at the exam they came from.
+  const snapshot = await getDocs(subjectId ? query(items, where('source.subjectId', '==', subjectId)) : items);
   const questions = snapshot.docs.map(toQuestion).filter((question) => question !== null);
   return shuffle(questions).slice(0, count);
 }

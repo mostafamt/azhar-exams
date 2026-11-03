@@ -79,6 +79,8 @@ function RootStack() {
         <Stack.Screen name="(tabs)" options={darkScreenOptions} />
       </Stack.Protected>
       {/* Not guarded, so links to grades and exams work for everyone. */}
+      {/* A shared room link; it asks a signed-out student to sign in itself. */}
+      <Stack.Screen name="join/[code]" options={darkScreenOptions} />
       <Stack.Screen name="grades/index" options={{ title: 'الصفوف' }} />
       {/* No swipe back: leaving a running test goes through its confirm dialog. */}
       <Stack.Screen
@@ -95,6 +97,12 @@ function RootStack() {
       </Stack.Protected>
       <Stack.Protected guard={!!user && !!profile}>
         <Stack.Screen name="edit-profile" options={{ title: 'تعديل البيانات' }} />
+        {/* 1v1 matches need an account and a name (docs/match-plan.md). */}
+        <Stack.Screen name="match/index" options={darkScreenOptions} />
+        {/* No swipe back: leaving a live match goes through a confirm dialog. */}
+        <Stack.Screen name="match/[id]" options={{ ...darkScreenOptions, gestureEnabled: false }} />
+        <Stack.Screen name="match/bot" options={{ ...darkScreenOptions, gestureEnabled: false }} />
+        <Stack.Screen name="match/leaderboard" options={darkScreenOptions} />
       </Stack.Protected>
     </Stack>
   );
