@@ -274,6 +274,33 @@ export function CheckIcon(props: IconProps) {
   );
 }
 
+/** «المادة» picker in the match lobby (7a). */
+export function BookIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z" />
+      <Path d="M4 19V5M8 7h7" />
+    </StrokeIcon>
+  );
+}
+
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="m6 9 6 6 6-6" />
+    </StrokeIcon>
+  );
+}
+
+export function SearchIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Circle cx={11} cy={11} r={7} />
+      <Path d="m20 20-4-4" />
+    </StrokeIcon>
+  );
+}
+
 /** White circle with a blue "G", as in the designs' Google buttons. */
 export function GoogleBadge({ size = 26 }: { size?: number }) {
   return (

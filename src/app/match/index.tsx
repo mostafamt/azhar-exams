@@ -8,10 +8,10 @@ import { PresetCard } from '@/components/match/preset-card';
 import { RecentMatchRow } from '@/components/match/recent-match-row';
 import { RoomCodeSheet } from '@/components/match/room-code-sheet';
 import { SearchState } from '@/components/match/search-state';
-import { SubjectChips } from '@/components/match/subject-chips';
+import { SubjectPicker } from '@/components/match/subject-picker';
 import { Brand } from '@/constants/colors';
 import { Fonts } from '@/constants/fonts';
-import { useSubjects } from '@/data/content';
+import { useCategories, useSubjects } from '@/data/content';
 import { PRESETS, type MatchSubject, type PresetId } from '@/data/matches';
 import { useAuth } from '@/hooks/use-auth';
 import { useLightStatusBar } from '@/hooks/use-light-status-bar';
@@ -40,6 +40,7 @@ export default function MatchLobbyScreen() {
   const [preset, setPreset] = useState<PresetId>('short');
   const [subject, setSubject] = useState<MatchSubject>(null);
   const subjects = useSubjects(profile?.gradeId ?? '', profile?.sectionId);
+  const categories = useCategories(profile?.gradeId ?? '', profile?.sectionId);
   const [sheetOpen, setSheetOpen] = useState(false);
   const { room, create, join, reset } = useRoom(me);
   const matchmaking = useMatchmaking(me);
@@ -93,7 +94,12 @@ export default function MatchLobbyScreen() {
             {subjects.data.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionLabel}>المادة</Text>
-                <SubjectChips subjects={subjects.data} selected={subject} onSelect={setSubject} />
+                <SubjectPicker
+                  subjects={subjects.data}
+                  categories={categories.data}
+                  selected={subject}
+                  onSelect={setSubject}
+                />
               </View>
             )}
 
