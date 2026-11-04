@@ -5,6 +5,7 @@ import { Platform, StyleSheet, type ViewStyle } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { ChallengeBanner } from '@/components/leagues/challenge-banner';
 import { ToastProvider } from '@/components/toast';
 import { Brand, Colors } from '@/constants/colors';
 import { CairoFonts } from '@/constants/fonts';
@@ -55,6 +56,8 @@ function AppContent() {
     <>
       <AnimatedSplashOverlay />
       <RootStack />
+      {/* «تحدَّ» invites from «الأوائل», over any screen (docs/leagues-plan.md §5). */}
+      <ChallengeBanner />
     </>
   );
 }
@@ -110,7 +113,6 @@ function RootStack() {
         {/* No swipe back: leaving a live match goes through a confirm dialog. */}
         <Stack.Screen name="match/[id]" options={{ ...darkScreenOptions, gestureEnabled: false }} />
         <Stack.Screen name="match/bot" options={{ ...darkScreenOptions, gestureEnabled: false }} />
-        <Stack.Screen name="match/leaderboard" options={darkScreenOptions} />
       </Stack.Protected>
     </Stack>
   );

@@ -131,15 +131,15 @@ export default function MatchLobbyScreen() {
             </View>
 
             <Pressable
-              onPress={() => router.push('/match/leaderboard')}
+              onPress={() => router.navigate('/leagues')}
               accessibilityRole="button"
               style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
               <View style={[styles.rowIcon, { backgroundColor: Brand.accentSoft }]}>
                 <TrophyIcon color={Brand.accentBright} size={20} />
               </View>
               <View style={styles.rowText}>
-                <Text style={styles.rowTitle}>لوحة الصدارة</Text>
-                <Text style={styles.rowSubtitle}>أعلى الطلاب تصنيفاً في المباريات المصنّفة</Text>
+                <Text style={styles.rowTitle}>الأوائل</Text>
+                <Text style={styles.rowSubtitle}>أكثر الطلاب نقاط خبرة من المباريات هذا الأسبوع</Text>
               </View>
               <ForwardIcon color={Brand.textMuted} size={18} />
             </Pressable>

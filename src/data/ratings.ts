@@ -70,10 +70,6 @@ export function ratingRef(uid: string) {
   return doc(ratings, uid);
 }
 
-export function leaderboardQuery(count = 20) {
-  return query(ratings, orderBy('rating', 'desc'), limit(count));
-}
-
 /** «الأوائل»: this week's top players by weekly XP (index: ratings weekId ASC, weekXp DESC). */
 export function weeklyLeaderboardQuery(weekId: number, count = 50) {
   return query(ratings, where('weekId', '==', weekId), orderBy('weekXp', 'desc'), limit(count));

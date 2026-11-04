@@ -1,8 +1,7 @@
 import { onSnapshot } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import {
-  leaderboardQuery,
   ratingRef,
   START_RATING,
   toRating,
@@ -29,29 +28,6 @@ export function useMyRating(uid: string | null) {
   return { rating: mine?.rating ?? START_RATING, xp: mine?.xp ?? 0, loaded: loaded?.uid === uid };
 }
 
-/** «لوحة الصدارة»: the top players by rating, live. */
-export function useLeaderboard() {
-  const [state, setState] = useState<{ players: PlayerRating[]; status: 'loading' | 'ready' | 'error' }>({
-    players: [],
-    status: 'loading',
-  });
-
-  useEffect(
-    () =>
-      onSnapshot(
-        leaderboardQuery(),
-        (snapshot) =>
-          setState({
-            players: snapshot.docs.map(toRating).filter((rating) => rating !== null),
-            status: 'ready',
-          }),
-        () => setState({ players: [], status: 'error' }),
-      ),
-    [],
-  );
-
-  return state;
-}
 
 /**
  * «الأوائل»: this week's top players by weekly XP, live (docs/leagues-plan.md). `weekId` is the
@@ -116,10 +92,12 @@ export function useMyWeeklyRank(uid: string | null, weekId: number) {
   }, [known, weekId, weekXp, key]);
 
   const counted = weekXp === 0 || rank?.key === key;
+  // Stable, so a focus effect can depend on it.
+  const refresh = useCallback(() => setRefreshes((n) => n + 1), []);
   return {
     rank: weekXp > 0 && rank?.key === key ? rank.rank : null,
     weekXp,
     loading: !!uid && (!known || !counted),
-    refresh: () => setRefreshes((n) => n + 1),
+    refresh,
   };
 }

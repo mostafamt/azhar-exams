@@ -3,12 +3,11 @@ import type { ComponentType } from 'react';
 import { Text, type ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { DocumentIcon, HomeIcon, UserIcon } from '@/components/icons';
+import { DocumentIcon, HomeIcon, TrophyIcon, UserIcon } from '@/components/icons';
 import { Brand } from '@/constants/colors';
 import { Fonts } from '@/constants/fonts';
 import { useLightStatusBar } from '@/hooks/use-light-status-bar';
 
-// The design's «الدوريات» tab waits for the leagues feature (docs/home-plan.md §2.7).
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   useLightStatusBar();
@@ -29,6 +28,8 @@ export default function TabLayout() {
         sceneStyle: { backgroundColor: Brand.background },
       }}>
       <Tabs.Screen name="index" options={tabOptions('الرئيسية', HomeIcon)} />
+      {/* «الأوائل»: the weekly leaderboard (docs/leagues-plan.md). */}
+      <Tabs.Screen name="leagues" options={tabOptions('الأوائل', TrophyIcon)} />
       <Tabs.Screen name="exams" options={tabOptions('الامتحانات', DocumentIcon)} />
       <Tabs.Screen name="profile" options={tabOptions('حسابي', UserIcon)} />
     </Tabs>

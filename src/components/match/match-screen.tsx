@@ -1,11 +1,12 @@
 import { router, useNavigation } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Chip } from '@/components/chip';
 import { ConfirmModal } from '@/components/confirm-modal';
+import { ChallengeWaiting } from '@/components/leagues/challenge-waiting';
 import { BackIcon, ChatIcon, CheckIcon, CloseIcon, LockIcon } from '@/components/icons';
 import { Mark, markColor } from '@/components/match/mark';
 import { MatchChoice } from '@/components/match/match-choice';
@@ -15,6 +16,7 @@ import { QuestionStrip } from '@/components/match/question-strip';
 import { ScorePill } from '@/components/match/score-pill';
 import { Brand } from '@/constants/colors';
 import { Fonts } from '@/constants/fonts';
+import { cancelChallenge } from '@/data/challenges';
 import type { MatchSource } from '@/data/match-source';
 import { PRESETS, REACTIONS, type Match } from '@/data/matches';
 import { CHOICE_LETTERS } from '@/data/questions';
@@ -44,7 +46,14 @@ function matchTitle(match: Match, bot: boolean) {
  * The live 1v1 match in lockstep (7b · Live Match, docs/match-plan.md §5), then its result.
  * Rendered by /match/[id] (a Firestore match) and /match/bot (practice on this phone).
  */
-export function MatchScreen({ source }: { source: MatchSource }) {
+export function MatchScreen({
+  source,
+  challenge,
+}: {
+  source: MatchSource;
+  /** Opened by «تحدَّ» on «الأوائل»: the invite I sent into this room (docs/leagues-plan.md §5). */
+  challenge?: { id: string; opponentName: string };
+}) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { user, profile } = useAuth();
@@ -69,6 +78,21 @@ export function MatchScreen({ source }: { source: MatchSource }) {
       source.cancelWaiting().catch(() => {});
     };
   }, [hostingRoom, source]);
+
+  // Leaving before anyone joined also withdraws my challenge. (This cleanup also runs when the
+  // match starts; the challenge is answered by then, so the rules refuse and nothing changes.)
+  const stillWaiting = useRef(false);
+  const waitingNow = m.match?.status === 'waiting';
+  useEffect(() => {
+    stillWaiting.current = waitingNow;
+  }, [waitingNow]);
+  const challengeId = challenge?.id;
+  useEffect(() => {
+    if (!challengeId) return;
+    return () => {
+      if (stillWaiting.current) cancelChallenge(challengeId).catch(() => {});
+    };
+  }, [challengeId]);
 
   function confirmExit() {
     // The leaver never sees the result screen, so their loss is settled here.
@@ -105,6 +129,15 @@ export function MatchScreen({ source }: { source: MatchSource }) {
               : 'تعذّر تحميل المباراة، تحقق من اتصالك بالإنترنت.'
             : 'المباراة غير موجودة.'}
         </Text>
+      );
+    } else if (challenge && hostingRoom) {
+      body = (
+        <ChallengeWaiting
+          challengeId={challenge.id}
+          opponentName={challenge.opponentName}
+          code={match.code ?? null}
+          onClose={leave}
+        />
       );
     } else {
       body = (

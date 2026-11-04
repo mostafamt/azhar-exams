@@ -1,17 +1,17 @@
-# خطة الأوائل: Weekly Leaderboard («الدوريات» tab)
+# خطة الأوائل: Weekly Leaderboard («الأوائل» tab)
 
-This plan adds a **weekly leaderboard** as a new bottom tab, **«الدوريات»**. It ranks students by the **XP they earned from matches this week**. It shows the top three as medal cards, the rest as a list, and **my own rank** in a bar pinned to the bottom. The «تحدَّ» button on each row lets a student challenge that player directly.
+This plan adds a **weekly leaderboard** as a new bottom tab, **«الأوائل»**. It ranks students by the **XP they earned from matches this week**. It shows the top three as medal cards, the rest as a list, and **my own rank** in a bar pinned to the bottom. The «تحدَّ» button on each row lets a student challenge that player directly.
 
 | Screen | Design | Route |
 |---|---|---|
 | **5 · Leagues**: «الأوائل», this week's top players and my rank | [`design/5 · Leagues-html/Leagues.dc.html`](<design/5 · Leagues-html/Leagues.dc.html>) | `src/app/(tabs)/leagues.tsx` (new tab) |
 
-Status: **Phase 1 code done** (2026-11-05): weekly XP, rules, rules tests and the index. Deploying the rules and index is still pending (§6).
+Status: **Phases 1–3 code done** (2026-11-05). Phase 1: weekly XP, rules, rules tests and the index. Phase 2: the «الأوائل» tab. Phase 3: «تحدَّ» challenges. Deploying the rules and both indexes is still pending (§6).
 
 The work is split into **three phases**. Each one can be built, tested and committed on its own (see [§6](#6-implementation-phases)):
 
 1. **Weekly XP:** `weekId` / `weekXp` on `ratings/{uid}`, rules, rules tests, the index
-2. **The «الدوريات» tab:** the screen, my-rank bar and the empty, guest, loading and error states. It replaces `/match/leaderboard`.
+2. **The «الأوائل» tab:** the screen, my-rank bar and the empty, guest, loading and error states. It replaces `/match/leaderboard`.
 3. **«تحدَّ» (challenge a player):** an in-app invite that opens a room for both players
 
 Stack: **Firebase JS SDK v13** (`firebase/firestore`, including `getCountFromServer`). The project stays on the **Spark plan**, so there are no Cloud Functions, scheduled jobs or push notifications. Firestore rules and indexes live in **`../azhar-exams-dashboard`** (`firestore.rules`, `firestore.indexes.json`, `tests/`).
@@ -24,7 +24,7 @@ Builds on [`match-plan.md`](match-plan.md) §9.1, which defines ratings, XP and 
 
 ### 1.1 Header
 
-- Title **«الأوائل»** (24px, 800). The tab itself is labelled **«الدوريات»**, with the trophy icon.
+- Title **«الأوائل»** (24px, 800). The tab is labelled **«الأوائل»** too, with the trophy icon. The design labels it «الدوريات»; renamed on 2026-11-05 to match the screen.
 - A single selected pill, **«هذا الأسبوع»** (h36, radius 999, `#4F46E5`, white, 14px 700), inside a `tablist` labelled «الفترة».
 - On the other side: a clock icon (15px) and **«ينتهي خلال 3 أيام»** (13px, `#94A3B8`).
 
@@ -69,7 +69,7 @@ A bar with padding `10 16`, background `#0F172A` and top border `#1E293B`. It co
 
 ### 1.5 Tab bar
 
-The design's tabs, from the start (right) side: الرئيسية · **الدوريات** · اختباراتي · حسابي. Today the app has الرئيسية · الامتحانات · حسابي. **«الدوريات» goes in second place.** «الامتحانات» keeps its name; renaming it to «اختباراتي» is out of scope.
+The design's tabs, from the start (right) side: الرئيسية · **الدوريات** · اختباراتي · حسابي. Today the app has الرئيسية · الامتحانات · حسابي. **The tab goes in second place, labelled «الأوائل».** «الامتحانات» keeps its name; renaming it to «اختباراتي» is out of scope.
 
 ---
 
@@ -91,7 +91,7 @@ The design's tabs, from the start (right) side: الرئيسية · **الدور
 | 12 | **«ينتهي خلال …»** | Counted down to the next Saturday 00:00 (UTC+2) on the device clock. It shows «ينتهي خلال N أيام» (or «يومين» / «يوم واحد»), then «خلال N ساعات», then «خلال أقل من ساعة». It updates every minute while the tab is focused. When the week turns over while the screen is open, the list re-queries with the new `weekId`. |
 | 13 | **My row inside the list** | Highlighted like the old leaderboard (`primarySoft` background, `primaryBright` border), and its name is followed by «(أنت)». The pinned bar is always shown, even when I'm in the top 50, as in the design. |
 | 14 | **«تحدَّ» (challenge)** | **Phase 3**, as an **in-app invite**. Without Cloud Functions there are no push notifications, so the invite only reaches a player **who has the app open**, and it **expires after 2 minutes**. Until Phase 3 ships, the button isn't shown. See §5. |
-| 15 | **Home's «الدوري الحالي» card** (badge «قريباً») | It drops «قريباً» and opens the «الدوريات» tab. The «الدوريات والمسابقات» announcement in `src/data/announcements.ts` stays as it is; those are tournaments, a different feature. |
+| 15 | **Home's «الدوري الحالي» card** (badge «قريباً») | It drops «قريباً» and opens the «الأوائل» tab. The «الدوريات والمسابقات» announcement in `src/data/announcements.ts` stays as it is; those are tournaments, a different feature. |
 
 ---
 
@@ -206,7 +206,7 @@ Deploy it with `firebase deploy --only firestore:indexes` **before** the app shi
 | File | What |
 |---|---|
 | `src/app/(tabs)/leagues.tsx` | **New tab screen.** It has a header, a scrolling list (top three + rows) and the pinned my-rank bar, plus loading, error, empty and guest states. The content is limited to a `maxWidth: 480` column, like the other tabs. |
-| `src/app/(tabs)/_layout.tsx` | Add `<Tabs.Screen name="leagues" options={tabOptions('الدوريات', TrophyIcon)} />` second. Remove the "waits for the leagues feature" comment. |
+| `src/app/(tabs)/_layout.tsx` | Add `<Tabs.Screen name="leagues" options={tabOptions('الأوائل', TrophyIcon)} />` second. Remove the "waits for the leagues feature" comment. |
 | `src/components/leagues/podium-card.tsx` | **New.** A top-three card (§1.2). The medal colours come from a `MEDALS` constant. |
 | `src/components/leagues/rank-row.tsx` | **New.** A row for rank 4 and below (§1.3), with an optional challenge button (Phase 3). |
 | `src/components/leagues/my-rank-bar.tsx` | **New.** The pinned bar (§1.4), including the «—» / «العب مباراة لتظهر في الترتيب» state. |
@@ -282,7 +282,18 @@ Done: `src/utils/week.ts`, the `weekId`/`weekXp` fields and `weekXpIn` / `weekly
    - Play another. `weekXp` grows by the new XP.
    - An old account updates cleanly on its first match.
 
-### Phase 2 · The «الدوريات» tab
+### Phase 2 · The «الأوائل» tab ✅ (code done; needs the index deployed and two-phone checks)
+
+Done:
+- **The tab:** `src/app/(tabs)/leagues.tsx` (second tab, trophy icon), plus `src/components/leagues/` (`podium-card`, `rank-row`, `my-rank-bar`, `week-countdown`).
+- **Old leaderboard:** `/match/leaderboard` is now a redirect and is gone from the root stack. The old `leaderboardQuery` / `useLeaderboard` are removed.
+- **Links:** the lobby row is renamed «الأوائل» and opens the tab, and Home's «الدوري الحالي» opens it too.
+
+Changes from §4:
+- **No pull-to-refresh.** The list is live, and my rank is counted again whenever the tab regains focus and whenever my weekly XP changes.
+- **The unranked bar** (no XP this week) is a button that opens `/match`.
+- **My row** is highlighted in the podium as well as in the list.
+
 
 1. `leagues.tsx` and the components in §4, the tab in `_layout.tsx`, the redirect from `/match/leaderboard`, and the lobby button and Home card changes.
 2. States:
@@ -298,7 +309,23 @@ Done: `src/utils/week.ts`, the `weekId`/`weekXp` fields and `weekXpIn` / `weekly
    - The countdown text is right.
    - On Android, iOS and web, the RTL order matches the design, and the list scrolls clear of the bar.
 
-### Phase 3 · «تحدَّ»
+### Phase 3 · «تحدَّ» ✅ (code done; needs the rules and index deployed and two-phone checks)
+
+Done:
+- **Dashboard:** `challenges/{id}` rules, `tests/challenges.test.js` (70/70 pass with the rest) and the index `challenges (to, status, createdAt)`.
+- **Data and hooks:** `src/data/challenges.ts` (`sendChallenge`, `answerChallenge`, `cancelChallenge`, `incomingChallengesQuery`) and `src/hooks/use-challenges.ts` (`useIncomingChallenge`, `useSentChallenge`).
+- **Receiver:** `ChallengeBanner`, mounted in the root layout.
+- **Sender:** `ChallengeWaiting`, shown by the match screen while the room waits.
+- **The button:** «تحدَّ» on `RankRow`.
+- **Sharing:** `shareRoom` moved to `src/lib/share-room.ts`, now shared with «تحدَّ صديقاً».
+
+Changes from §5:
+- **The rules also check the room:** it must be mine, still waiting, and the challenge's code must be the room's code. A challenge can't point at someone else's room.
+- **Accepting joins first, then marks the challenge `accepted`.** If the room is gone, taken or expired, the receiver sees why, and the challenge is marked `declined` so it disappears.
+- **Challenges are quick games:** the `short` preset, «متنوع», friendly.
+- **The banner is hidden** on the match lobby, live matches, the quick test and the photo cropper. On the lobby, accepting would leave a random search running underneath. It appears once the student leaves those screens, if the invite hasn't lapsed.
+- **Who can challenge:** the button needs a profile, and isn't shown on my own row. The top three have none, as in the design.
+
 
 1. `challenges` rules and tests in the dashboard. Deploy them.
 2. `src/data/challenges.ts` (`sendChallenge`, `answerChallenge`, `cancelChallenge`), a root-level `useIncomingChallenges` with the banner, and the challenge button on `RankRow`.

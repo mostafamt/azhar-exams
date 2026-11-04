@@ -1,4 +1,3 @@
-import * as Linking from 'expo-linking';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -6,7 +5,6 @@ import {
   Modal,
   Platform,
   Pressable,
-  Share,
   StyleSheet,
   Text,
   View,
@@ -20,6 +18,7 @@ import { CloseIcon, ForwardIcon, KeyIcon, ShareIcon, UsersIcon } from '@/compone
 import { Brand } from '@/constants/colors';
 import { Fonts } from '@/constants/fonts';
 import type { RoomState } from '@/hooks/use-room';
+import { shareRoom } from '@/lib/share-room';
 
 // A modal is its own native window, so the root's RTL doesn't reach it (see _layout.tsx).
 const rtl: ViewStyle = Platform.OS === 'web' ? {} : { direction: 'rtl' };
@@ -137,16 +136,8 @@ export function RoomCodeSheet({ visible, room, presetLabel, onCreate, onJoin, on
 }
 
 function HostingView({ code, onCancel }: { code: string; onCancel: () => void }) {
-  function share() {
-    // Share isn't available in every browser; the code stays on screen either way.
-    // The link opens the app straight into the room (src/app/join/[code].tsx).
-    const link = Linking.createURL(`/join/${code}`);
-    const message = [
-      `تحدّاني في مباراة! افتح الرابط: ${link}`,
-      `أو من «العب مباراة» اختر «تحدَّ صديقاً» ثم «انضم بكود» واكتب الكود: ${code}`,
-    ].join('\n');
-    Share.share({ message }).catch(() => {});
-  }
+  // The code stays on screen too, for browsers without Share.
+  const share = () => shareRoom(code);
 
   return (
     <>

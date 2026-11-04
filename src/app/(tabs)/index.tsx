@@ -111,6 +111,7 @@ export default function HomeScreen() {
               Icon={TrophyIcon}
               color={Brand.accentBright}
               background={Brand.accentSoft}
+              onPress={() => router.navigate('/leagues')}
             />
             <QuickAction label="سجل النتائج" Icon={ChartIcon} color={Brand.success} background={Brand.successSoft} />
           </View>
