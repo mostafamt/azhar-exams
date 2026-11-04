@@ -1,16 +1,19 @@
 import {
   collection,
   doc,
+  getCountFromServer,
   limit,
   orderBy,
   query,
   runTransaction,
   serverTimestamp,
+  where,
   type DocumentSnapshot,
 } from 'firebase/firestore';
 
 import { opponentId, toMatch, type Me } from '@/data/matches';
 import { db } from '@/lib/firebase';
+import { currentWeekId, weekIdAt } from '@/utils/week';
 
 /**
  * Match ratings and XP, public for «لوحة الصدارة» (docs/match-plan.md §9). The app settles them
@@ -31,6 +34,10 @@ export type PlayerRating = {
   wins: number;
   losses: number;
   draws: number;
+  /** League week this player last earned XP in (utils/week.ts); missing before leagues shipped. */
+  weekId?: number;
+  /** XP earned in `weekId` (docs/leagues-plan.md). */
+  weekXp?: number;
 };
 
 /** What one match added, for the chips on the result screen. */
@@ -49,7 +56,14 @@ export function toRating(snapshot: DocumentSnapshot): PlayerRating | null {
     wins: data.wins,
     losses: data.losses,
     draws: data.draws,
+    weekId: data.weekId,
+    weekXp: data.weekXp,
   };
+}
+
+/** XP earned this week; 0 when the last XP was in an earlier week. */
+export function weekXpIn(rating: PlayerRating | null, weekId: number) {
+  return rating?.weekId === weekId ? (rating.weekXp ?? 0) : 0;
 }
 
 export function ratingRef(uid: string) {
@@ -60,10 +74,38 @@ export function leaderboardQuery(count = 20) {
   return query(ratings, orderBy('rating', 'desc'), limit(count));
 }
 
+/** «الأوائل»: this week's top players by weekly XP (index: ratings weekId ASC, weekXp DESC). */
+export function weeklyLeaderboardQuery(weekId: number, count = 50) {
+  return query(ratings, where('weekId', '==', weekId), orderBy('weekXp', 'desc'), limit(count));
+}
+
+/**
+ * My rank this week: players with more weekly XP, plus one, so equal XP shares a rank
+ * («1, 2, 2, 4»). A count query costs about one read per 1,000 players.
+ */
+export async function weeklyRank(weekId: number, weekXp: number) {
+  const ahead = await getCountFromServer(
+    query(ratings, where('weekId', '==', weekId), where('weekXp', '>', weekXp))
+  );
+  return ahead.data().count + 1;
+}
+
 /** Elo: the change for a result of 1 (win), 0.5 (draw) or 0 (loss). */
 export function eloDelta(mine: number, theirs: number, result: number) {
   const expected = 1 / (1 + 10 ** ((theirs - mine) / 400));
   return Math.round(K * (result - expected));
+}
+
+/**
+ * The week a match's XP counts for. finishedAt is server time, so a phone clock that runs ahead
+ * can't file it under a week the rules haven't reached (they'd refuse the whole settlement). A
+ * match settled over a week late (e.g. from history) counts for this week, as the rules require.
+ */
+function settlementWeek(finishedAtMs: number | undefined) {
+  const thisWeek = currentWeekId();
+  if (finishedAtMs === undefined) return thisWeek;
+  const finishedWeek = weekIdAt(finishedAtMs);
+  return finishedWeek >= thisWeek - 1 ? finishedWeek : thisWeek;
 }
 
 /**
@@ -92,6 +134,9 @@ export function settleMatch(matchId: string, me: Me) {
         : 0;
     // Leaving early earns nothing.
     const xp = mine.left ? 0 : XP[outcome];
+    // Weekly XP for «الأوائل» restarts when the week changes (docs/leagues-plan.md §2 #3).
+    // Never earlier than my stored week: the rules don't let it go backwards.
+    const weekId = Math.max(settlementWeek(match.finishedAt?.toMillis()), current?.weekId ?? -1);
 
     tx.update(matchRef, { [`players.${me.uid}.rated`]: true });
     tx.set(myRef, {
@@ -103,6 +148,8 @@ export function settleMatch(matchId: string, me: Me) {
       draws: (current?.draws ?? 0) + (outcome === 'draw' ? 1 : 0),
       lastMatchId: matchId,
       updatedAt: serverTimestamp(),
+      weekId,
+      weekXp: weekXpIn(current, weekId) + xp,
     });
     return { ratingBefore, rating: Math.max(0, ratingBefore + delta), xp };
   });

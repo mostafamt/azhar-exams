@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>الأوائل</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#A5B4FC}a:hover{color:#C7D2FE}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0F172A; color: #F8FAFC; font-family: 'Cairo', sans-serif; direction: rtl; display: flex; flex-direction: column; overflow: hidden">
+
+  <div style="display: flex; flex-direction: column; gap: 12px; padding: 20px 20px 12px">
+    <h1 style="margin: 0; font-size: 24px; font-weight: 800">الأوائل</h1>
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <div role="tablist" aria-label="الفترة" style="display: flex">
+        <button type="button" role="tab" aria-selected="true" style="height: 36px; padding: 0 16px; border-radius: 999px; border: none; background: #4F46E5; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 700">هذا الأسبوع</button>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #94A3B8">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+        ينتهي خلال 3 أيام
+      </div>
+    </div>
+  </div>
+
+  <div style="flex: 1; min-height: 0; overflow-y: auto; padding: 4px 20px 12px; display: flex; flex-direction: column; gap: 16px">
+
+    <section aria-label="المراكز الثلاثة الأولى" style="display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{top}}" as="t" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 0 12px; border-radius: 16px; background: {{t.tint}}; border: 1px solid {{t.edge}}">
+          <span style="width: 32px; height: 32px; border-radius: 16px; flex-shrink: 0; background: {{t.medal}}; color: #0F172A; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800" aria-label="{{t.medalLabel}}">{{t.rank}}</span>
+          <span style="width: 44px; height: 44px; border-radius: 22px; flex-shrink: 0; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800">{{t.initial}}</span>
+          <span style="flex: 1; min-width: 0; font-size: 16px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{t.name}}</span>
+          <span style="font-size: 15px; font-weight: 800; color: {{t.medal}}" dir="ltr">{{t.xp}} XP</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section aria-label="باقي الترتيب" style="display: flex; flex-direction: column">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 0 4px 0 0; border-bottom: 1px solid #1E293B">
+          <span style="width: 32px; flex-shrink: 0; text-align: center; font-size: 15px; font-weight: 700; color: #94A3B8">{{r.rank}}</span>
+          <span style="width: 40px; height: 40px; border-radius: 20px; flex-shrink: 0; background: #1E293B; border: 1px solid #334155; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700">{{r.initial}}</span>
+          <span style="flex: 1; min-width: 0; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.name}}</span>
+          <span style="font-size: 14px; font-weight: 700; color: #CBD5E1" dir="ltr">{{r.xp}} XP</span>
+          <a href="Match.dc.html" aria-label="تحدَّ {{r.name}}" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; color: #A5B4FC; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"></path></svg></a>
+        </div>
+      </sc-for>
+    </section>
+  </div>
+
+  <div style="padding: 10px 16px; background: #0F172A; border-top: 1px solid #1E293B; flex-shrink: 0">
+    <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 0 14px; border-radius: 16px; background: #312E81; border: 1px solid #6366F1">
+      <span style="font-size: 16px; font-weight: 800; color: #C7D2FE" dir="ltr">#128</span>
+      <span style="width: 1px; height: 24px; background: #4F46E5" aria-hidden="true"></span>
+      <span style="width: 36px; height: 36px; border-radius: 18px; background: #4F46E5; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800">أ</span>
+      <span style="flex: 1; font-size: 16px; font-weight: 800">أنت</span>
+      <span style="font-size: 15px; font-weight: 800; color: #FBBF24" dir="ltr">940 XP</span>
+    </div>
+  </div>
+
+  <nav aria-label="التنقل الرئيسي" style="display: flex; justify-content: space-around; align-items: center; height: 72px; background: #1E293B; border-top: 1px solid #334155; flex-shrink: 0">
+    <a href="Home.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 64px; min-height: 48px; text-decoration: none; color: #94A3B8; font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>الرئيسية</a>
+    <a href="Leagues.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 64px; min-height: 48px; text-decoration: none; color: #A5B4FC; font-size: 12px; font-weight: 700"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"></path><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"></path></svg>الأوائل</a>
+    <a href="Result.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 64px; min-height: 48px; text-decoration: none; color: #94A3B8; font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"></path><path d="M14 3v5h5M9 13h6M9 17h4"></path></svg>الامتحانات</a>
+    <a href="Profile.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 64px; min-height: 48px; text-decoration: none; color: #94A3B8; font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>حسابي</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const MEDALS = [
+      { medal: '#FBBF24', tint: 'rgba(251,191,36,0.10)', edge: 'rgba(251,191,36,0.35)', medalLabel: 'المركز الأول، ذهبي' },
+      { medal: '#CBD5E1', tint: 'rgba(203,213,225,0.08)', edge: 'rgba(203,213,225,0.28)', medalLabel: 'المركز الثاني، فضي' },
+      { medal: '#F59E0B', tint: 'rgba(217,119,6,0.10)', edge: 'rgba(217,119,6,0.35)', medalLabel: 'المركز الثالث، برونزي' }
+    ];
+    const top = [
+      { rank: 1, initial: 'ي', name: 'يوسف خالد', xp: '2,780' },
+      { rank: 2, initial: 'س', name: 'سارة محمود', xp: '2,410' },
+      { rank: 3, initial: 'م', name: 'مريم حسن', xp: '2,295' }
+    ].map((p, i) => ({ ...p, ...MEDALS[i] }));
+    top[2].medal = '#D97706';
+    const rows = [
+      { rank: 4, initial: 'ع', name: 'عمر فاروق', xp: '2,150' },
+      { rank: 5, initial: 'ن', name: 'نور الهدى', xp: '2,040' },
+      { rank: 6, initial: 'ك', name: 'كريم سامي', xp: '1,985' },
+      { rank: 7, initial: 'ل', name: 'ليلى إبراهيم', xp: '1,870' },
+      { rank: 8, initial: 'ح', name: 'حسن طارق', xp: '1,790' },
+      { rank: 9, initial: 'ر', name: 'رنا عادل', xp: '1,720' },
+      { rank: 10, initial: 'ز', name: 'زياد مصطفى', xp: '1,655' }
+    ];
+    return { top, rows };
+  }
+}
+</script>
+</body>
+</html>
