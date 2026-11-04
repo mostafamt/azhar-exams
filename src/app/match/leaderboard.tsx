@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Avatar } from '@/components/avatar';
 import { BackIcon } from '@/components/icons';
 import { Brand } from '@/constants/colors';
 import { Fonts } from '@/constants/fonts';
@@ -39,9 +40,13 @@ export default function LeaderboardScreen() {
           accessible
           accessibilityLabel={`المركز ${i + 1}، ${player.name}، التصنيف ${player.rating}`}>
           <Text style={[styles.rank, i < MEDALS.length && { color: MEDALS[i] }]}>{toArabicDigits(i + 1)}</Text>
-          <View style={[styles.avatar, mine && styles.avatarMine]}>
-            <Text style={styles.initial}>{player.name.charAt(0)}</Text>
-          </View>
+          <Avatar
+            uid={player.uid}
+            name={player.name}
+            size={36}
+            backgroundColor={mine ? Brand.primaryDeep : Brand.border}
+            color={mine ? Brand.primaryPale : Brand.text}
+          />
           <View style={styles.text}>
             <Text style={styles.name} numberOfLines={1}>
               {mine ? `${player.name} (أنت)` : player.name}
@@ -156,23 +161,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.extraBold,
     color: Brand.textMuted,
     textAlign: 'center',
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Brand.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarMine: {
-    backgroundColor: Brand.primaryDeep,
-  },
-  initial: {
-    fontSize: 15,
-    lineHeight: 24,
-    fontFamily: Fonts.bold,
-    color: Brand.text,
   },
   text: {
     flex: 1,

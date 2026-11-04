@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
+import { Avatar } from '@/components/avatar';
 import { Brand } from '@/constants/colors';
 import { Fonts } from '@/constants/fonts';
 import { opponentId, PRESETS, type Match } from '@/data/matches';
@@ -25,9 +26,7 @@ export function RecentMatchRow({ match, uid, onPress }: { match: Match; uid: str
       accessibilityRole="button"
       accessibilityLabel={`${oppName}، ${preset}، أنت ${myScore} والمنافس ${oppScore}، ${badge.label}`}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
-      <View style={styles.avatar}>
-        <Text style={styles.initial}>{oppName.charAt(0)}</Text>
-      </View>
+      <Avatar uid={oppId} name={oppName} size={32} backgroundColor={Brand.border} color={Brand.text} />
       <Text style={styles.name} numberOfLines={1}>
         {oppName} · {preset}
       </Text>
@@ -53,20 +52,6 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Brand.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initial: {
-    fontSize: 14,
-    lineHeight: 22,
-    fontFamily: Fonts.bold,
-    color: Brand.text,
   },
   name: {
     flex: 1,

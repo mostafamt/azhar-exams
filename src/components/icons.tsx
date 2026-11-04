@@ -73,6 +73,42 @@ export function UserIcon(props: IconProps) {
   );
 }
 
+// 6 · Profile: the avatar's camera badge and the edit button.
+export function CameraIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
+      <Circle cx={12} cy={13.5} r={3.5} />
+    </StrokeIcon>
+  );
+}
+
+export function PencilIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M4 20h4L19 9l-4-4L4 16z" />
+    </StrokeIcon>
+  );
+}
+
+export function ImageIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Rect x={3} y={4} width={18} height={16} rx={2} />
+      <Circle cx={9} cy={10} r={2} />
+      <Path d="m21 16-5-5-9 9" />
+    </StrokeIcon>
+  );
+}
+
+export function TrashIcon(props: IconProps) {
+  return (
+    <StrokeIcon {...props}>
+      <Path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+    </StrokeIcon>
+  );
+}
+
 export function KeyIcon(props: IconProps) {
   return (
     <StrokeIcon {...props}>

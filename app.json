@@ -48,7 +48,15 @@
           "forcesRTL": true
         }
       ],
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "يحتاج التطبيق إلى الوصول إلى صورك لاختيار صورتك الشخصية.",
+          "cameraPermission": "يحتاج التطبيق إلى الكاميرا لالتقاط صورتك الشخصية.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

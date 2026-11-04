@@ -10,11 +10,13 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AuthButton } from '@/components/auth-button';
+import { Avatar } from '@/components/avatar';
 import { UsersIcon } from '@/components/icons';
 import { Brand } from '@/constants/colors';
 import { Fonts } from '@/constants/fonts';
 
 type Props = {
+  myUid: string;
   myName: string;
   /** e.g. «متنوع · 5 أسئلة · ودية». */
   summary: string;
@@ -31,16 +33,14 @@ function formatElapsed(ms: number) {
 }
 
 /** «جارٍ البحث عن منافس…»: me vs a pulsing «؟» (7a searching state), then the no-opponent fallback. */
-export function SearchState({ myName, summary, startedAt, onCancel, onRetry, onChallengeFriend }: Props) {
+export function SearchState({ myUid, myName, summary, startedAt, onCancel, onRetry, onChallengeFriend }: Props) {
   const searching = startedAt !== null;
 
   return (
     <View style={styles.container}>
       <View style={styles.players}>
         <View style={styles.player}>
-          <View style={[styles.avatar, styles.avatarMine]}>
-            <Text style={styles.avatarText}>{myName.charAt(0)}</Text>
-          </View>
+          <Avatar uid={myUid} name={myName} size={AVATAR} ring={{ width: 3, color: Brand.primaryBright }} />
           <Text style={styles.name}>أنت</Text>
         </View>
         <Text style={styles.vs}>VS</Text>
@@ -149,10 +149,6 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  avatarMine: {
-    backgroundColor: Brand.primaryDeep,
-    borderColor: Brand.primaryBright,
   },
   avatarUnknown: {
     backgroundColor: Brand.surface,

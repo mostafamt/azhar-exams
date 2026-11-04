@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Avatar } from '@/components/avatar';
 import { Mark } from '@/components/match/mark';
 import { ChoiceButton, type ChoiceState } from '@/components/quiz/choice-button';
 import { BoltIcon, CloseIcon, RefreshIcon, TrendIcon, TrophyIcon } from '@/components/icons';
@@ -149,6 +150,7 @@ export function MatchResult({ match, me, bot = false, onClose }: Props) {
         </View>
         <View style={styles.players}>
           <Player
+            uid={me.uid}
             name={mine?.name ?? 'أنت'}
             label="أنت"
             mine
@@ -159,7 +161,7 @@ export function MatchResult({ match, me, bot = false, onClose }: Props) {
             <Text style={[styles.bigScoreText, styles.bigScoreDash]}>–</Text>
             <Text style={[styles.bigScoreText, { color: Brand.accentBright }]}>{oppScore}</Text>
           </View>
-          <Player name={oppName} ring={result === 'loss' ? Brand.accent : Brand.border} />
+          <Player uid={bot ? null : oppId} name={oppName} ring={result === 'loss' ? Brand.accent : Brand.border} />
         </View>
         {settlement && <SettlementChips settlement={settlement} ranked={!!match.ranked} />}
       </View>
@@ -297,12 +299,30 @@ function AnswerLine({ who, answer }: { who: string; answer: MatchAnswer | undefi
   );
 }
 
-function Player({ name, label, mine, ring }: { name: string; label?: string; mine?: boolean; ring: string }) {
+function Player({
+  uid,
+  name,
+  label,
+  mine,
+  ring,
+}: {
+  uid: string | null;
+  name: string;
+  label?: string;
+  mine?: boolean;
+  ring: string;
+}) {
   return (
     <View style={styles.player}>
-      <View style={[styles.avatar, mine ? styles.avatarMine : styles.avatarOpp, { borderColor: ring }]}>
-        <Text style={[styles.avatarText, { color: mine ? Brand.primaryPale : '#FDE68A' }]}>{name.charAt(0)}</Text>
-      </View>
+      <Avatar
+        uid={uid}
+        name={name}
+        size={64}
+        radius={18}
+        backgroundColor={mine ? Brand.primaryDeep : '#78350F'}
+        color={mine ? Brand.primaryPale : '#FDE68A'}
+        ring={{ width: 3, color: ring }}
+      />
       <Text style={styles.playerName} numberOfLines={1}>
         {label ?? name}
       </Text>
@@ -373,25 +393,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     gap: 6,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    borderWidth: 3,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarMine: {
-    backgroundColor: Brand.primaryDeep,
-  },
-  avatarOpp: {
-    backgroundColor: '#78350F',
-  },
-  avatarText: {
-    fontSize: 24,
-    lineHeight: 36,
-    fontFamily: Fonts.extraBold,
   },
   playerName: {
     fontSize: 14,

@@ -223,6 +223,7 @@ export function MatchScreen({ source }: { source: MatchSource }) {
 
       <View style={[styles.column, styles.fill]}>
         <PlayerRow
+          uid={source.bot ? null : m.oppId}
           name={oppName}
           rating={opp?.rating}
           variant="opponent"
@@ -283,6 +284,7 @@ export function MatchScreen({ source }: { source: MatchSource }) {
         </ScrollView>
 
         <PlayerRow
+          uid={uid}
           name={myName}
           label="أنت"
           rating={me?.rating}

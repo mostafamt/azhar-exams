@@ -1,21 +1,21 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { UserIcon } from '@/components/icons';
+import { Avatar } from '@/components/avatar';
 import { Brand } from '@/constants/colors';
 import { Fonts } from '@/constants/fonts';
+import { useMyAvatar } from '@/hooks/use-avatar';
 
 /**
  * Avatar and greeting. The design's streak and level pills wait for an activity feature
- * (docs/home-plan.md §2.1). Guests have no name, so they get a person icon.
+ * (docs/home-plan.md §2.1). Shows the student's photo (docs/profile-photo-plan.md) or their
+ * initial; guests have no name, so they get a person icon.
  */
-export function HomeHeader({ name }: { name: string | null }) {
-  const initial = name?.trim().charAt(0);
+export function HomeHeader({ uid, name }: { uid: string | null; name: string | null }) {
+  const avatar = useMyAvatar(uid);
 
   return (
     <View style={styles.row}>
-      <View style={styles.avatar} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        {initial ? <Text style={styles.initial}>{initial}</Text> : <UserIcon color={Brand.primaryPale} size={22} />}
-      </View>
+      <Avatar size={46} name={name} url={avatar.url} />
       <View style={styles.text}>
         <Text style={styles.greeting} accessibilityRole="header" numberOfLines={1}>
           {name ? `مرحباً، ${name}` : 'مرحباً بك'}
@@ -31,20 +31,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-  },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: Brand.primaryDeep,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initial: {
-    fontSize: 18,
-    lineHeight: 28,
-    fontFamily: Fonts.bold,
-    color: Brand.primaryPale,
   },
   text: {
     flex: 1,

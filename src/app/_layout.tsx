@@ -5,6 +5,7 @@ import { Platform, StyleSheet, type ViewStyle } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { ToastProvider } from '@/components/toast';
 import { Brand, Colors } from '@/constants/colors';
 import { CairoFonts } from '@/constants/fonts';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
@@ -32,7 +33,9 @@ export default function RootLayout() {
     <GestureHandlerRootView style={[styles.root, rtl]}>
       <ThemeProvider value={theme}>
         <AuthProvider>
-          <AppContent />
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
         </AuthProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
@@ -97,6 +100,11 @@ function RootStack() {
       </Stack.Protected>
       <Stack.Protected guard={!!user && !!profile}>
         <Stack.Screen name="edit-profile" options={{ title: 'تعديل البيانات' }} />
+        {/* Crop and upload a profile photo (docs/profile-photo-plan.md). */}
+        <Stack.Screen
+          name="edit-photo"
+          options={{ ...darkScreenOptions, presentation: 'fullScreenModal', gestureEnabled: false }}
+        />
         {/* 1v1 matches need an account and a name (docs/match-plan.md). */}
         <Stack.Screen name="match/index" options={darkScreenOptions} />
         {/* No swipe back: leaving a live match goes through a confirm dialog. */}

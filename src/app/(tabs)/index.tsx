@@ -77,7 +77,7 @@ export default function HomeScreen() {
     <View style={styles.screen}>
       <ScrollView style={styles.fill} contentContainerStyle={[styles.content, { paddingTop: insets.top + 24 }]}>
         <View style={styles.column}>
-          <HomeHeader name={profile?.name ?? user?.displayName ?? null} />
+          <HomeHeader uid={user?.uid ?? null} name={profile?.name ?? user?.displayName ?? null} />
 
           {user && (
             <>

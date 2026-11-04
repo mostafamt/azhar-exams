@@ -8,11 +8,14 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { Avatar } from '@/components/avatar';
 import { MatchClock } from '@/components/match/match-clock';
 import { Brand } from '@/constants/colors';
 import { Fonts } from '@/constants/fonts';
 
 type Props = {
+  /** Whose photo to show (docs/profile-photo-plan.md); null for the bot. */
+  uid: string | null;
   name: string;
   /** Shown instead of the name, e.g. «أنت». */
   label?: string;
@@ -27,13 +30,19 @@ type Props = {
 };
 
 /** Avatar, name, status line and clock box: the opponent above the question, me below it (7b). */
-export function PlayerRow({ name, label, rating, variant, status, clock, low, reaction }: Props) {
+export function PlayerRow({ uid, name, label, rating, variant, status, clock, low, reaction }: Props) {
   const mine = variant === 'me';
   return (
     <View style={styles.row}>
-      <View style={[styles.avatar, mine ? styles.avatarMine : styles.avatarOpponent]}>
-        <Text style={[styles.initial, { color: mine ? Brand.primaryPale : '#FDE68A' }]}>{name.charAt(0)}</Text>
-      </View>
+      <Avatar
+        uid={uid}
+        name={name}
+        size={44}
+        radius={12}
+        backgroundColor={mine ? Brand.primaryDeep : '#78350F'}
+        color={mine ? Brand.primaryPale : '#FDE68A'}
+        ring={{ width: 2, color: mine ? Brand.primaryBright : Brand.accent }}
+      />
       <View style={styles.text}>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>
@@ -93,27 +102,6 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 10,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarMine: {
-    backgroundColor: Brand.primaryDeep,
-    borderColor: Brand.primaryBright,
-  },
-  avatarOpponent: {
-    backgroundColor: '#78350F',
-    borderColor: Brand.accent,
-  },
-  initial: {
-    fontSize: 18,
-    lineHeight: 28,
-    fontFamily: Fonts.extraBold,
   },
   text: {
     flex: 1,

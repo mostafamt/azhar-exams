@@ -15,6 +15,14 @@ const AUTH_ERRORS: Record<string, string> = {
   'google/play-services-not-available': 'خدمات Google Play غير متاحة أو تحتاج إلى تحديث على هذا الجهاز',
   unavailable: 'تعذّر الاتصال بالخادم، تحقق من اتصالك بالإنترنت',
   'permission-denied': 'لا تملك صلاحية تنفيذ هذا الإجراء',
+  // Profile photo uploads (src/lib/cloudinary.ts)
+  'cloudinary/network': 'تعذّر رفع الصورة، تحقق من اتصالك بالإنترنت',
+  'cloudinary/rejected': 'تعذّر رفع الصورة، جرّب صورة أخرى',
+  'cloudinary/config': 'إعدادات Cloudinary غير موجودة',
+  // Picking and cropping it (src/lib/pick-photo.ts, src/lib/crop-photo.ts)
+  'photo/too-big': 'الصورة أكبر من 5 ميجابايت',
+  'photo/not-image': 'اختر صورة بصيغة JPG أو PNG',
+  'photo/encode': 'تعذّر تجهيز الصورة، جرّب صورة أخرى',
 };
 
 /** The user closed the sign-in popup themselves; not worth an error message. */

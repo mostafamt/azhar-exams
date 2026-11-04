@@ -77,6 +77,7 @@ export default function MatchLobbyScreen() {
       {searchingView ? (
         <View style={[styles.column, styles.fill, { paddingBottom: insets.bottom }]}>
           <SearchState
+            myUid={user?.uid ?? ''}
             myName={profile?.name ?? ''}
             summary={`${subject?.name ?? 'متنوع'} · ${PRESETS[preset].label} · مباراة مصنّفة`}
             startedAt={search.status === 'searching' ? search.startedAt : null}

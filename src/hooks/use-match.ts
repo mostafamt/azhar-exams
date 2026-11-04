@@ -251,5 +251,6 @@ export function useMatch(source: MatchSource, uid: string) {
     canClaimWin: silentFor > CLAIM_AFTER_MS,
     /** The emoji (REACTIONS index) each player sent in the last few seconds, or null. */
     reactions: { me: reactionFor(uid), opp: reactionFor(oppId) },
+    oppId,
   };
 }
